@@ -67,6 +67,13 @@ namespace Bloomquartz.UI
             StartCoroutine(ShowWinPanel());
         }
 
+        /// Called by Board when no valid swaps remain on the board.
+        public void TriggerNoMoves()
+        {
+            if (_gameOver) return;
+            TriggerLose();
+        }
+
         private void TriggerLose()
         {
             _gameOver = true;

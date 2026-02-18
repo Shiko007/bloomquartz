@@ -152,6 +152,13 @@ namespace Bloomquartz.Puzzle
             _isProcessing = false;
 
             WinLoseController.Instance?.CheckEndCondition();
+
+            // Deadlock detection: if game isn't over but no valid swap exists, force loss
+            if (WinLoseController.Instance != null && !WinLoseController.Instance.IsGameOver)
+            {
+                if (!HasValidMove())
+                    WinLoseController.Instance.TriggerNoMoves();
+            }
         }
 
         private IEnumerator SwapTiles(Tile a, Tile b)
@@ -247,5 +254,74 @@ namespace Bloomquartz.Puzzle
         }
 
         public Tile GetTile(int x, int y) => _grid[x, y];
+
+        // ── Deadlock detection ────────────────────────────────────────────────
+
+        /// Returns true if at least one adjacent swap would create a 3+ match.
+        private bool HasValidMove()
+        {
+            GemType[,] snap = SnapshotBoard();
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    // Try horizontal swap with right neighbour
+                    if (x + 1 < width)
+                    {
+                        SwapInSnapshot(snap, x, y, x + 1, y);
+                        if (SnapshotHasMatch(snap)) return true;
+                        SwapInSnapshot(snap, x, y, x + 1, y); // undo
+                    }
+                    // Try vertical swap with upper neighbour
+                    if (y + 1 < height)
+                    {
+                        SwapInSnapshot(snap, x, y, x, y + 1);
+                        if (SnapshotHasMatch(snap)) return true;
+                        SwapInSnapshot(snap, x, y, x, y + 1); // undo
+                    }
+                }
+            }
+            return false;
+        }
+
+        private GemType[,] SnapshotBoard()
+        {
+            var snap = new GemType[width, height];
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    snap[x, y] = _grid[x, y].GemType;
+            return snap;
+        }
+
+        private static void SwapInSnapshot(GemType[,] s, int x1, int y1, int x2, int y2)
+        {
+            GemType tmp = s[x1, y1];
+            s[x1, y1]   = s[x2, y2];
+            s[x2, y2]   = tmp;
+        }
+
+        /// Checks the snapshot for any horizontal or vertical run of 3+.
+        private bool SnapshotHasMatch(GemType[,] s)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int run = 1;
+                for (int x = 1; x < width; x++)
+                {
+                    if (!_grid[x, y].IsEmpty() && s[x, y] == s[x - 1, y]) { if (++run >= 3) return true; }
+                    else run = 1;
+                }
+            }
+            for (int x = 0; x < width; x++)
+            {
+                int run = 1;
+                for (int y = 1; y < height; y++)
+                {
+                    if (!_grid[x, y].IsEmpty() && s[x, y] == s[x, y - 1]) { if (++run >= 3) return true; }
+                    else run = 1;
+                }
+            }
+            return false;
+        }
     }
 }
