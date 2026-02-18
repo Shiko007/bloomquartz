@@ -3,6 +3,8 @@ using UnityEngine.EventSystems;
 using TMPro;
 using Bloomquartz.UI;
 using Bloomquartz.Audio;
+using Bloomquartz.Core;
+using Bloomquartz.Juice;
 
 namespace Bloomquartz.Plants
 {
@@ -13,16 +15,23 @@ namespace Bloomquartz.Plants
         [SerializeField] private SpriteRenderer glowRenderer;
         [SerializeField] private TextMeshPro gemReadyLabel;
 
-        private bool _hasPlant;
-        private bool _gemReady;
-        private float _pulseTimer;
-        private int _evolutionLevel;
+        // Seconds to produce one gem per evolution level (0-4)
+        private static readonly float[] ProductionRates = { 30f, 22f, 15f, 10f, 6f };
 
-        public int GetSlotIndex() => slotIndex;
+        private bool  _hasPlant;
+        private bool  _gemReady;
+        private float _pulseTimer;
+        private int   _evolutionLevel;
+        private float _productionTimer;
+        private int   _pendingGems;
+
+        public int  GetSlotIndex()     => slotIndex;
+        public int  GetEvolutionLevel() => _evolutionLevel;
 
         public void SetHasPlant(bool hasPlant)
         {
-            _hasPlant = hasPlant;
+            _hasPlant        = hasPlant;
+            _productionTimer = 0f;
             if (glowRenderer != null)
                 glowRenderer.color = hasPlant
                     ? new Color(0.4f, 1f, 0.5f, 0.3f)
@@ -32,12 +41,26 @@ namespace Bloomquartz.Plants
         public void SetGemReady(bool ready)
         {
             _gemReady = ready;
+            // Pulse the glow gold when gems are waiting
+            if (glowRenderer != null && _hasPlant)
+                glowRenderer.color = ready
+                    ? new Color(1f, 0.88f, 0.1f, 0.7f)
+                    : new Color(0.4f, 1f, 0.5f, 0.3f);
             if (gemReadyLabel != null)
                 gemReadyLabel.gameObject.SetActive(ready);
         }
 
-        public const int MaxEvolutionLevel = 4;
+        /// Collect pending gems; returns how many were collected.
+        public int CollectGems()
+        {
+            int gems     = _pendingGems;
+            _pendingGems = 0;
+            _productionTimer = 0f;
+            SetGemReady(false);
+            return gems;
+        }
 
+        public const int MaxEvolutionLevel = 4;
         public bool CanEvolve() => _hasPlant && _evolutionLevel < MaxEvolutionLevel;
 
         public void TriggerEvolve()
@@ -45,7 +68,7 @@ namespace Bloomquartz.Plants
             if (!CanEvolve()) return;
             _evolutionLevel++;
             AudioManager.Instance?.PlaySFX("evolution");
-            // Brighten glow color per evolution level
+
             if (glowRenderer != null)
             {
                 Color[] evolveColors = {
@@ -76,15 +99,48 @@ namespace Bloomquartz.Plants
         private void Update()
         {
             if (!_hasPlant) return;
+
+            // Pulse animation
             _pulseTimer += Time.deltaTime;
             float scale = 1f + 0.04f * Mathf.Sin(_pulseTimer * 2f);
             transform.localScale = Vector3.one * scale;
+
+            // Idle gem production — only tick while no gems are waiting
+            if (_pendingGems == 0)
+            {
+                _productionTimer += Time.deltaTime;
+                float rate = ProductionRates[Mathf.Clamp(_evolutionLevel, 0, ProductionRates.Length - 1)];
+                if (_productionTimer >= rate)
+                {
+                    _productionTimer = 0f;
+                    _pendingGems     = 1;
+                    SetGemReady(true);
+                }
+            }
         }
 
         public void OnPointerClick(PointerEventData _)
         {
+            // Collect pending gems first; don't open the action panel
+            if (_hasPlant && _pendingGems > 0)
+            {
+                int gems = CollectGems();
+                if (SaveSystem.Instance != null)
+                    SaveSystem.Instance.Data.totalGems += gems;
+
+                FloatingTextPool.Instance?.Spawn(
+                    transform.position + Vector3.up * 0.6f,
+                    $"+{gems}",
+                    new Color(1f, 0.88f, 0.1f));
+
+                GardenUI.Instance?.RefreshGemCount();
+                AudioManager.Instance?.PlaySFX("gemSpark");
+                HapticFeedback.Light();
+                return;
+            }
+
             GardenUI.Instance?.OnSlotTapped(slotIndex, _hasPlant);
-            Juice.HapticFeedback.Light();
+            HapticFeedback.Light();
         }
     }
 }

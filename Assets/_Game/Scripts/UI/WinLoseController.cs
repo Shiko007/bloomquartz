@@ -42,7 +42,14 @@ namespace Bloomquartz.UI
 
         private void Start()
         {
-            HUDController.Instance?.SetGoalText($"Goal: {scoreGoal:N0}");
+            // Override Inspector values with level-scaled config
+            int level      = SaveSystem.Instance?.Data.highestLevel ?? 0;
+            scoreGoal      = LevelConfig.GetGoal(level);
+            starThreshold1 = LevelConfig.GetStar1(level);
+            starThreshold2 = LevelConfig.GetStar2(level);
+            starThreshold3 = LevelConfig.GetStar3(level);
+
+            HUDController.Instance?.SetGoalText($"Level {level + 1}  |  Goal: {scoreGoal:N0}");
         }
 
         public void CheckEndCondition()
@@ -72,11 +79,13 @@ namespace Bloomquartz.UI
         {
             yield return new WaitForSeconds(0.5f);
 
-            int stars = ScoreManager.Instance.GetStars(starThreshold1, starThreshold2, starThreshold3);
+            int level     = SaveSystem.Instance?.Data.highestLevel ?? 0;
+            int stars     = ScoreManager.Instance.GetStars(starThreshold1, starThreshold2, starThreshold3);
+            int gemReward = LevelConfig.GetGemReward(level) * Mathf.Max(1, stars);
 
             winPanel?.SetActive(true);
             if (winScoreText != null)
-                winScoreText.text = $"Score: {ScoreManager.Instance.Score:N0}";
+                winScoreText.text = $"Score: {ScoreManager.Instance.Score:N0}\n+{gemReward} gems";
 
             // Reset all stars to dim
             if (starImages != null)
@@ -94,7 +103,7 @@ namespace Bloomquartz.UI
                 }
             }
 
-            SaveProgress(stars);
+            SaveProgress(gemReward);
         }
 
         private IEnumerator ShowLosePanel()
@@ -105,12 +114,12 @@ namespace Bloomquartz.UI
                 loseScoreText.text = $"Score: {ScoreManager.Instance.Score:N0}";
         }
 
-        private void SaveProgress(int stars)
+        private void SaveProgress(int gemReward)
         {
-            if (stars <= 0) return;
-            if (SaveSystem.Instance == null) return; // Safe when testing from editor
+            if (SaveSystem.Instance == null) return;
             var data = SaveSystem.Instance.Data;
-            data.totalGems += ScoreManager.Instance.Score / 100;
+            data.totalGems += gemReward;
+            data.highestLevel++;          // advance to next level
             SaveSystem.Instance.Save();
         }
 
@@ -138,10 +147,7 @@ namespace Bloomquartz.UI
             else UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
 
-        public void OnNextPressed()
-        {
-            if (GameManager.Instance != null) GameManager.Instance.GoToGarden();
-            else UnityEngine.SceneManagement.SceneManager.LoadScene("Garden");
-        }
+        public void OnNextPressed() =>
+            UnityEngine.SceneManagement.SceneManager.LoadScene("PuzzleBoard");
     }
 }

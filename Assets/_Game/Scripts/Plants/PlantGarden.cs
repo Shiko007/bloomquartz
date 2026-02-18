@@ -26,8 +26,12 @@ namespace Bloomquartz.Plants
         private void Start()
         {
             int count = gardenSlots != null ? gardenSlots.Length : 6;
-            _slotStates          = new bool[count];
+            _slotStates           = new bool[count];
             _gardenSlotTransforms = gardenSlots;
+
+            if (Juice.FloatingTextPool.Instance == null)
+                new GameObject("FloatingTextPool").AddComponent<Juice.FloatingTextPool>();
+
             LoadGarden();
         }
 

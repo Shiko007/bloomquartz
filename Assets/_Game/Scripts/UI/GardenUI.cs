@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using Bloomquartz.Core;
 using Bloomquartz.Plants;
+using Bloomquartz.Audio;
 
 namespace Bloomquartz.UI
 {
@@ -24,7 +25,11 @@ namespace Bloomquartz.UI
         [SerializeField] private GameObject offlinePanel;
         [SerializeField] private TextMeshProUGUI offlineText;
 
-        private int _selectedSlot = -1;
+        private const int PlantCost = 50;
+        private static int EvolveCost(int evoLevel) => 100 * (evoLevel + 1);
+
+        private int _selectedSlot    = -1;
+        private int _selectedEvoLevel = 0;
 
         private void Awake() => Instance = this;
 
@@ -58,14 +63,23 @@ namespace Bloomquartz.UI
             {
                 var slots = PlantGarden.Instance?.GetComponentsInChildren<Plants.GardenSlot>();
                 bool canEvolve = false;
+                _selectedEvoLevel = 0;
                 if (slots != null)
                     foreach (var s in slots)
-                        if (s.GetSlotIndex() == slotIndex) { canEvolve = s.CanEvolve(); break; }
+                        if (s.GetSlotIndex() == slotIndex)
+                        {
+                            canEvolve         = s.CanEvolve();
+                            _selectedEvoLevel = s.GetEvolutionLevel();
+                            break;
+                        }
 
                 if (canEvolve)
                 {
+                    int cost = EvolveCost(_selectedEvoLevel);
                     slotPanelTitle.text = "Plant Options";
                     evolveButton?.gameObject.SetActive(true);
+                    var tmp = evolveButton?.GetComponentInChildren<TextMeshProUGUI>();
+                    if (tmp != null) tmp.text = $"EVOLVE  ({cost} gems)";
                 }
                 else
                 {
@@ -79,12 +93,25 @@ namespace Bloomquartz.UI
                 slotPanelTitle.text = "Empty Slot";
                 plantButton?.gameObject.SetActive(true);
                 evolveButton?.gameObject.SetActive(false);
+                var tmp = plantButton?.GetComponentInChildren<TextMeshProUGUI>();
+                if (tmp != null) tmp.text = $"PLANT  ({PlantCost} gems)";
             }
         }
 
         public void OnPlantPressed()
         {
             if (_selectedSlot < 0) return;
+
+            int gems = SaveSystem.Instance?.Data.totalGems ?? 0;
+            if (gems < PlantCost)
+            {
+                slotPanelTitle.text = $"Need {PlantCost - gems} more gems!";
+                AudioManager.Instance?.PlaySFX("uiTap");
+                return;
+            }
+
+            SaveSystem.Instance.Data.totalGems -= PlantCost;
+            SaveSystem.Instance.Save();
             PlantGarden.Instance?.PlantDefaultInSlot(_selectedSlot);
             slotActionPanel?.SetActive(false);
             RefreshGemCount();
@@ -92,8 +119,20 @@ namespace Bloomquartz.UI
 
         public void OnEvolvePressed()
         {
+            int cost = EvolveCost(_selectedEvoLevel);
+            int gems = SaveSystem.Instance?.Data.totalGems ?? 0;
+            if (gems < cost)
+            {
+                slotPanelTitle.text = $"Need {cost - gems} more gems!";
+                AudioManager.Instance?.PlaySFX("uiTap");
+                return;
+            }
+
+            SaveSystem.Instance.Data.totalGems -= cost;
+            SaveSystem.Instance.Save();
             PlantGarden.Instance?.EvolveAtSlot(_selectedSlot);
             slotActionPanel?.SetActive(false);
+            RefreshGemCount();
         }
 
         public void OnClosePanel() => slotActionPanel?.SetActive(false);

@@ -4,6 +4,7 @@ using UnityEngine;
 using Bloomquartz.Gems;
 using Bloomquartz.Juice;
 using Bloomquartz.UI;
+using Bloomquartz.Core;
 
 namespace Bloomquartz.Puzzle
 {
@@ -34,6 +35,10 @@ namespace Bloomquartz.Puzzle
 
         private void Start()
         {
+            // Scale moves from save level (falls back to Inspector value if no save)
+            int level = SaveSystem.Instance?.Data.highestLevel ?? 0;
+            startMoves = LevelConfig.GetMoves(level);
+
             ScoreManager.Instance.Init(startMoves);
             GenerateBoard();
 
