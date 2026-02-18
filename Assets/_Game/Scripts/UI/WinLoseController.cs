@@ -30,6 +30,7 @@ namespace Bloomquartz.UI
         [SerializeField] private int starThreshold2 = 2000;
         [SerializeField] private int starThreshold3 = 3500;
 
+        private bool _gameOver;
         public bool IsGameOver => _gameOver;
 
         private void Awake()
