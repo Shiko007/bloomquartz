@@ -36,6 +36,10 @@ namespace Bloomquartz.Puzzle
         {
             ScoreManager.Instance.Init(startMoves);
             GenerateBoard();
+
+            // Self-bootstrap juice components if scene setup hasn't been re-run
+            if (FloatingTextPool.Instance == null)
+                new GameObject("FloatingTextPool").AddComponent<FloatingTextPool>();
         }
 
         private void GenerateBoard()

@@ -8,24 +8,24 @@ namespace Bloomquartz.Juice
     public class FloatingText : MonoBehaviour
     {
         private TextMeshPro _tmp;
-        private static FloatingTextPool _pool;
 
         private void Awake()
         {
             _tmp = GetComponent<TextMeshPro>();
             if (_tmp == null)
             {
-                _tmp           = gameObject.AddComponent<TextMeshPro>();
-                _tmp.fontSize  = 2.5f;
-                _tmp.alignment = TextAlignmentOptions.Center;
-                _tmp.fontStyle = FontStyles.Bold;
-                _tmp.sortingOrder = 20;
+                _tmp              = gameObject.AddComponent<TextMeshPro>();
+                _tmp.fontSize     = 5f;
+                _tmp.alignment    = TextAlignmentOptions.Center;
+                _tmp.fontStyle    = FontStyles.Bold;
+                _tmp.sortingOrder = 50;  // well above sprites and tile backgrounds
             }
         }
 
         public void Spawn(Vector3 worldPos, string text, Color color)
         {
-            transform.position = worldPos;
+            // Slightly in front of all sprites (camera looks toward +Z in 2D)
+            transform.position = new Vector3(worldPos.x, worldPos.y, -1f);
             _tmp.text  = text;
             _tmp.color = color;
             gameObject.SetActive(true);
@@ -49,7 +49,7 @@ namespace Bloomquartz.Juice
             }
 
             gameObject.SetActive(false);
-            _pool?.Return(this);
+            FloatingTextPool.Instance?.Return(this);
         }
     }
 

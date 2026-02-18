@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Bloomquartz.Core;
+using Bloomquartz.Audio;
 
 namespace Bloomquartz.Plants
 {
@@ -90,6 +91,7 @@ namespace Bloomquartz.Plants
             Juice.JuiceManager.Instance?.PlayGemSparkle(
                 _gardenSlotTransforms != null && slotIndex < _gardenSlotTransforms.Length
                     ? _gardenSlotTransforms[slotIndex].position : Vector3.zero);
+            AudioManager.Instance?.PlaySFX("uiTap");
             Juice.HapticFeedback.Medium();
         }
 
