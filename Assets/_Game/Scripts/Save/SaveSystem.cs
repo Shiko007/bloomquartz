@@ -41,8 +41,21 @@ namespace Bloomquartz.Core
 
         public SaveData Data => _data;
 
-        private void OnApplicationPause(bool paused) { if (paused) Save(); }
-        private void OnApplicationQuit() { Save(); }
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused)
+            {
+                // Stamp exit time so idle earnings are calculated correctly on resume
+                _data.lastGardenExitTime = DateTime.UtcNow.ToBinary();
+                Save();
+            }
+        }
+
+        private void OnApplicationQuit()
+        {
+            _data.lastGardenExitTime = DateTime.UtcNow.ToBinary();
+            Save();
+        }
     }
 
     [Serializable]
