@@ -32,6 +32,19 @@ namespace Bloomquartz.Audio
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
+            // Auto-create AudioSources if not assigned in the Inspector
+            if (musicSource == null)
+            {
+                musicSource        = gameObject.AddComponent<AudioSource>();
+                musicSource.loop   = true;
+                musicSource.volume = 0.6f;
+            }
+            if (sfxSource == null)
+            {
+                sfxSource        = gameObject.AddComponent<AudioSource>();
+                sfxSource.volume = 1f;
+            }
+
             _sfxMap = new Dictionary<string, AudioClip>
             {
                 { "gemPop",    gemPopSfx },
@@ -67,7 +80,7 @@ namespace Bloomquartz.Audio
                 _            => null
             };
 
-            if (clip == null || musicSource.clip == clip) return;
+            if (clip == null || musicSource == null || musicSource.clip == clip) return;
 
             musicSource.clip = clip;
             musicSource.loop = true;

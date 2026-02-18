@@ -24,6 +24,7 @@ namespace Bloomquartz.Editor
             DestroyIfExists("WinLoseController");
             DestroyIfExists("EventSystem");
             DestroyIfExists("FloatingTextPool");
+            DestroyIfExists("AudioManager");
 
             // EventSystem — required for all UI button clicks
             var esGO = new GameObject("EventSystem");
@@ -154,6 +155,10 @@ namespace Bloomquartz.Editor
             WireButton(winPanel,  "NextButton",   wlCtrl, "OnNextPressed");
             WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
+
+            // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────
+            var amGO = new GameObject("AudioManager");
+            amGO.AddComponent<Bloomquartz.Audio.AudioManager>();
 
             // ── CAMERA SHAKER ─────────────────────────────────────
             var cam = GameObject.Find("Main Camera");
