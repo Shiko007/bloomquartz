@@ -174,7 +174,10 @@ namespace Bloomquartz.Editor
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
 
             // ── POWER-UP PANEL (row 3 of top HUD — above the board) ─────
-            var board = boardGO?.GetComponent<Bloomquartz.Puzzle.Board>();
+            // PowerupHandler lives on the HUD canvas so it is always present;
+            // it delegates to Board.Instance at call time, avoiding the issue
+            // where boardGO may be null when this Editor script runs.
+            var powerupHandler = hudCanvas.AddComponent<Bloomquartz.UI.PowerupHandler>();
 
             var powerupPanel = new GameObject("PowerupPanel");
             powerupPanel.transform.SetParent(hudCanvas.transform, false);
@@ -188,12 +191,9 @@ namespace Bloomquartz.Editor
             var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb  250g",       new Vector2(0,    0), new Vector2(320, 58), new Color(0.50f, 0.15f, 0.10f));
             var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle  150g",    new Vector2(340,  0), new Vector2(320, 58), new Color(0.15f, 0.25f, 0.50f));
 
-            if (board != null)
-            {
-                WireButtonToComponent(movesBtn,   board, "BuyMoves");
-                WireButtonToComponent(bombBtn,    board, "BombPowerUp");
-                WireButtonToComponent(shuffleBtn, board, "ShufflePowerUp");
-            }
+            WireButtonToComponent(movesBtn,   powerupHandler, "BuyMoves");
+            WireButtonToComponent(bombBtn,    powerupHandler, "BombPowerUp");
+            WireButtonToComponent(shuffleBtn, powerupHandler, "ShufflePowerUp");
 
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────
             var amGO = new GameObject("AudioManager");
