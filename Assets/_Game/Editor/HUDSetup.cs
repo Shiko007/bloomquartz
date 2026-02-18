@@ -199,10 +199,17 @@ namespace Bloomquartz.Editor
             var amGO = new GameObject("AudioManager");
             amGO.AddComponent<Bloomquartz.Audio.AudioManager>();
 
-            // ── CAMERA SHAKER ─────────────────────────────────────
+            // ── CAMERA SHAKER + PHYSICS2D RAYCASTER ──────────────
+            // Physics2DRaycaster is required so tiles can use IPointerClickHandler,
+            // which is properly blocked by UI buttons (unlike OnMouseDown).
             var cam = GameObject.Find("Main Camera");
-            if (cam != null && cam.GetComponent<Bloomquartz.Juice.CameraShaker>() == null)
-                cam.AddComponent<Bloomquartz.Juice.CameraShaker>();
+            if (cam != null)
+            {
+                if (cam.GetComponent<Bloomquartz.Juice.CameraShaker>() == null)
+                    cam.AddComponent<Bloomquartz.Juice.CameraShaker>();
+                if (cam.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() == null)
+                    cam.AddComponent<UnityEngine.EventSystems.Physics2DRaycaster>();
+            }
 
             // ── FLOATING TEXT POOL ────────────────────────────────
             var ftpGO = new GameObject("FloatingTextPool");

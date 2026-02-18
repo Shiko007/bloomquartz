@@ -1,9 +1,10 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Bloomquartz.Gems;
 
 namespace Bloomquartz.Puzzle
 {
-    public class Tile : MonoBehaviour
+    public class Tile : MonoBehaviour, IPointerClickHandler
     {
         [Header("Visuals")]
         [SerializeField] private SpriteRenderer gemRenderer;
@@ -94,13 +95,11 @@ namespace Bloomquartz.Puzzle
             transform.localScale = _baseScale;
         }
 
-        private void OnMouseDown()
+        // IPointerClickHandler integrates with the EventSystem, so Unity
+        // automatically suppresses this when a UI element sits above the tile.
+        // This replaces OnMouseDown which fired before UI events were processed.
+        public void OnPointerClick(PointerEventData _)
         {
-            // Ignore clicks consumed by UI buttons / panels
-            if (UnityEngine.EventSystems.EventSystem.current != null &&
-                UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-                return;
-
             Board.Instance.OnTileSelected(this);
         }
     }
