@@ -44,15 +44,21 @@ namespace Bloomquartz.Plants
             if (SaveSystem.Instance == null) return;
             PlantSaveEntry[] saved = SaveSystem.Instance.Data.plants;
             if (saved == null) return;
+
+            var slots = GetComponentsInChildren<GardenSlot>();
+
             foreach (PlantSaveEntry entry in saved)
             {
                 if (gardenSlots == null || entry.slotIndex >= gardenSlots.Length) continue;
                 _slotStates[entry.slotIndex] = true;
 
-                var slots = GetComponentsInChildren<GardenSlot>();
                 foreach (var s in slots)
-                    if (s.GetSlotIndex() == entry.slotIndex)
-                        s.SetHasPlant(true);
+                {
+                    if (s.GetSlotIndex() != entry.slotIndex) continue;
+                    s.SetHasPlant(true);
+                    s.SetEvolutionLevel(entry.evolutionLevel); // restore persisted level & glow
+                    break;
+                }
 
                 if (plantPrefab != null)
                     SpawnPlant(entry);
