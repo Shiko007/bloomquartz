@@ -25,7 +25,7 @@ namespace Bloomquartz.Editor
             Menu.SetChecked(MenuPath, next);
         }
 
-        [MenuItem(MenuPath, validate: true)]
+        [MenuItem(MenuPath, isValidateFunction: true)]
         private static bool ToggleValidate()
         {
             Menu.SetChecked(MenuPath, EditorPrefs.GetBool(PrefsKey, true));
