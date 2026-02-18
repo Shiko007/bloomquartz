@@ -72,6 +72,31 @@ namespace Bloomquartz.UI
             gemCountText.text = $"Gems: {gems:N0}";
         }
 
+        public void ShowNotEnoughGems(int cost)
+        {
+            if (comboText == null) return;
+            StopAllCoroutines();
+            StartCoroutine(AnimateComboText($"Need {cost} gems!", new Color(1f, 0.35f, 0.2f)));
+        }
+
+        private IEnumerator AnimateComboText(string message, Color color)
+        {
+            comboText.text  = message;
+            comboText.color = color;
+            comboText.gameObject.SetActive(true);
+
+            float t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime / 0.9f;
+                comboText.alpha = t < 0.6f ? 1f : 1f - ((t - 0.6f) / 0.4f);
+                yield return null;
+            }
+
+            comboText.gameObject.SetActive(false);
+            comboText.color = new Color(1f, 0.9f, 0.2f); // restore default yellow
+        }
+
         public void ShowComboText(int multiplier)
         {
             if (comboText == null) return;

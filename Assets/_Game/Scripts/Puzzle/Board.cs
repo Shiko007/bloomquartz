@@ -316,7 +316,11 @@ namespace Bloomquartz.Puzzle
         {
             const int cost = 200;
             if (SaveSystem.Instance == null) return;
-            if (SaveSystem.Instance.Data.totalGems < cost) return;
+            if (SaveSystem.Instance.Data.totalGems < cost)
+            {
+                HUDController.Instance?.ShowNotEnoughGems(cost);
+                return;
+            }
             SaveSystem.Instance.Data.totalGems -= cost;
             SaveSystem.Instance.Save();
             ScoreManager.Instance.AddMoves(5);
@@ -331,7 +335,11 @@ namespace Bloomquartz.Puzzle
             if (_isProcessing) return;
             const int cost = 250;
             if (SaveSystem.Instance == null) return;
-            if (SaveSystem.Instance.Data.totalGems < cost) return;
+            if (SaveSystem.Instance.Data.totalGems < cost)
+            {
+                HUDController.Instance?.ShowNotEnoughGems(cost);
+                return;
+            }
             SaveSystem.Instance.Data.totalGems -= cost;
             SaveSystem.Instance.Save();
             HUDController.Instance?.RefreshGemCount();
@@ -377,7 +385,11 @@ namespace Bloomquartz.Puzzle
             if (_isProcessing) return;
             const int cost = 150;
             if (SaveSystem.Instance == null) return;
-            if (SaveSystem.Instance.Data.totalGems < cost) return;
+            if (SaveSystem.Instance.Data.totalGems < cost)
+            {
+                HUDController.Instance?.ShowNotEnoughGems(cost);
+                return;
+            }
             SaveSystem.Instance.Data.totalGems -= cost;
             SaveSystem.Instance.Save();
             HUDController.Instance?.RefreshGemCount();
