@@ -89,6 +89,7 @@ namespace Bloomquartz.Puzzle
         {
             if (_isProcessing) return;
             if (ScoreManager.Instance.MovesLeft <= 0) return;
+            if (WinLoseController.Instance != null && WinLoseController.Instance.IsGameOver) return;
 
             if (_selectedTile == null)
             {

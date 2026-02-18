@@ -12,6 +12,9 @@ namespace Bloomquartz.UI
     {
         public static WinLoseController Instance { get; private set; }
 
+        [Header("Blocker")]
+        [SerializeField] private GameObject blocker;
+
         [Header("Win Panel")]
         [SerializeField] private GameObject winPanel;
         [SerializeField] private TextMeshProUGUI winScoreText;
@@ -27,7 +30,7 @@ namespace Bloomquartz.UI
         [SerializeField] private int starThreshold2 = 2000;
         [SerializeField] private int starThreshold3 = 3500;
 
-        private bool _gameOver;
+        public bool IsGameOver => _gameOver;
 
         private void Awake()
         {
@@ -51,6 +54,7 @@ namespace Bloomquartz.UI
         private void TriggerWin()
         {
             _gameOver = true;
+            blocker?.SetActive(true);
             HapticFeedback.Heavy();
             StartCoroutine(ShowWinPanel());
         }
@@ -58,6 +62,7 @@ namespace Bloomquartz.UI
         private void TriggerLose()
         {
             _gameOver = true;
+            blocker?.SetActive(true);
             HapticFeedback.Medium();
             StartCoroutine(ShowLosePanel());
         }

@@ -19,9 +19,15 @@ namespace Bloomquartz.Editor
             if (boardGO != null && boardGO.GetComponent<Bloomquartz.Puzzle.ScoreManager>() == null)
                 boardGO.AddComponent<Bloomquartz.Puzzle.ScoreManager>();
 
-            // Remove old HUDCanvas and WinLoseController to rebuild cleanly
+            // Remove old objects to rebuild cleanly
             DestroyIfExists("HUDCanvas");
             DestroyIfExists("WinLoseController");
+            DestroyIfExists("EventSystem");
+
+            // EventSystem — required for all UI button clicks
+            var esGO = new GameObject("EventSystem");
+            esGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
             // ── CANVAS ────────────────────────────────────────────
             var hudCanvas = new GameObject("HUDCanvas");
@@ -68,6 +74,17 @@ namespace Bloomquartz.Editor
             hudSO.FindProperty("comboText").objectReferenceValue = comboGO.GetComponent<TextMeshProUGUI>();
             hudSO.FindProperty("comboRect").objectReferenceValue = comboGO.GetComponent<RectTransform>();
             hudSO.ApplyModifiedProperties();
+
+            // ── BLOCKER (fullscreen, sits behind panels, blocks board clicks) ──
+            var blocker = new GameObject("Blocker");
+            blocker.transform.SetParent(hudCanvas.transform, false);
+            var brt = blocker.AddComponent<RectTransform>();
+            brt.anchorMin = Vector2.zero; brt.anchorMax = Vector2.one;
+            brt.offsetMin = Vector2.zero; brt.offsetMax = Vector2.zero;
+            var bImg = blocker.AddComponent<Image>();
+            bImg.color = new Color(0, 0, 0, 0.55f);
+            blocker.AddComponent<Button>(); // swallows clicks
+            blocker.SetActive(false);
 
             // ── WIN PANEL ─────────────────────────────────────────
             var winPanel = CreateCenteredPanel(hudCanvas, "WinPanel",
@@ -121,6 +138,7 @@ namespace Bloomquartz.Editor
             var wlGO   = new GameObject("WinLoseController");
             var wlCtrl = wlGO.AddComponent<Bloomquartz.UI.WinLoseController>();
             var wlSO   = new SerializedObject(wlCtrl);
+            wlSO.FindProperty("blocker").objectReferenceValue       = blocker;
             wlSO.FindProperty("winPanel").objectReferenceValue      = winPanel;
             wlSO.FindProperty("winScoreText").objectReferenceValue  = winScore.GetComponent<TextMeshProUGUI>();
             wlSO.FindProperty("losePanel").objectReferenceValue     = losePanel;

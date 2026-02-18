@@ -26,10 +26,12 @@ namespace Bloomquartz.Plants
 
         private void LoadGarden()
         {
+            if (SaveSystem.Instance == null) return;
             PlantSaveEntry[] saved = SaveSystem.Instance.Data.plants;
+            if (saved == null) return;
             foreach (PlantSaveEntry entry in saved)
             {
-                if (entry.slotIndex >= gardenSlots.Length) continue;
+                if (gardenSlots == null || entry.slotIndex >= gardenSlots.Length) continue;
                 SpawnPlant(entry);
             }
         }
