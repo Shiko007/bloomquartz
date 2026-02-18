@@ -17,6 +17,7 @@ namespace Bloomquartz.Core
             Instance = this;
             DontDestroyOnLoad(gameObject);
             _savePath = Path.Combine(Application.persistentDataPath, "bloomquartz.json");
+            Load(); // Load in Awake so data is ready before any other script's Start()
         }
 
         public void Load()

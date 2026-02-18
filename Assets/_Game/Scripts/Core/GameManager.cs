@@ -27,7 +27,6 @@ namespace Bloomquartz.Core
         {
             Application.targetFrameRate = 60;
             State = GameState.MainMenu;
-            SaveSystem.Instance.Load();
         }
 
         public void GoToPuzzle(int levelIndex)

@@ -30,6 +30,7 @@ namespace Bloomquartz.Idle
 
         private void CalculateOfflineEarnings()
         {
+            if (SaveSystem.Instance == null) return;
             long savedBinary = SaveSystem.Instance.Data.lastSaveTime;
             if (savedBinary == 0) return;
 
