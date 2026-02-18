@@ -118,7 +118,7 @@ namespace Bloomquartz.Editor
             }
 
             // Primary action: NEXT LEVEL — large, centered, accent colour
-            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL ▶", new Vector2(0, -310), new Vector2(380, 72),
+            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL >>", new Vector2(0, -310), new Vector2(380, 72),
                 new Color(0.12f, 0.55f, 0.20f));
             // Secondary actions: RETRY and GARDEN side-by-side below
             CreateButton(winPanel, "RetryButton",  "RETRY",    new Vector2(-130, -400), new Vector2(190, 58));
