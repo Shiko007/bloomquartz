@@ -15,12 +15,25 @@ namespace Bloomquartz.Puzzle
         public event System.Action<int> OnMovesChanged;
         public event System.Action<int> OnGemsMatched;
 
-        private int _basePointsPerGem = 50;
-        private int _comboMultiplier  = 1;
+        private int   _basePointsPerGem = 50;
+        private int   _comboMultiplier  = 1;
+        private float _evolutionBonus   = 1f; // +10% per total evo level across all plants
 
         private void Awake()
         {
             Instance = this;
+        }
+
+        /// Call once at start of puzzle with the sum of all plant evolution levels.
+        public void SetEvolutionBonus(int totalEvoLevels)
+        {
+            _evolutionBonus = 1f + totalEvoLevels * 0.10f;
+        }
+
+        public void AddMoves(int count)
+        {
+            MovesLeft += count;
+            OnMovesChanged?.Invoke(MovesLeft);
         }
 
         public void Init(int moves)
@@ -40,7 +53,7 @@ namespace Bloomquartz.Puzzle
             else
                 _comboMultiplier = 1;
 
-            int points = gemCount * _basePointsPerGem * _comboMultiplier;
+            int points = Mathf.RoundToInt(gemCount * _basePointsPerGem * _comboMultiplier * _evolutionBonus);
             Score       += points;
             GemsMatched += gemCount;
 

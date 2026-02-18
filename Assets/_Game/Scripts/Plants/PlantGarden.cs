@@ -53,10 +53,15 @@ namespace Bloomquartz.Plants
         private void LoadGarden()
         {
             if (SaveSystem.Instance == null) return;
-            PlantSaveEntry[] saved = SaveSystem.Instance.Data.plants;
-            if (saved == null) return;
 
             var slots = GetComponentsInChildren<GardenSlot>();
+
+            // Apply locked state — first 3 slots are always open; slots 3+ require purchase
+            foreach (var s in slots)
+                s.SetLocked(IsSlotLocked(s.GetSlotIndex()));
+
+            PlantSaveEntry[] saved = SaveSystem.Instance.Data.plants;
+            if (saved == null) return;
 
             foreach (PlantSaveEntry entry in saved)
             {
@@ -74,6 +79,27 @@ namespace Bloomquartz.Plants
                 if (plantPrefab != null)
                     SpawnPlant(entry);
             }
+        }
+
+        private static bool IsSlotLocked(int slotIndex)
+        {
+            if (slotIndex < 3) return false; // first 3 always unlocked
+            if (SaveSystem.Instance == null) return true;
+            var areas = SaveSystem.Instance.Data.unlockedAreas;
+            return areas == null || slotIndex >= areas.Length || !areas[slotIndex];
+        }
+
+        public void UnlockSlot(int slotIndex)
+        {
+            var slots = GetComponentsInChildren<GardenSlot>();
+            foreach (var s in slots)
+                if (s.GetSlotIndex() == slotIndex)
+                    s.SetLocked(false);
+
+            Juice.JuiceManager.Instance?.PlayEvolutionBurst(
+                _gardenSlotTransforms != null && slotIndex < _gardenSlotTransforms.Length
+                    ? _gardenSlotTransforms[slotIndex].position : Vector3.zero);
+            Juice.HapticFeedback.Heavy();
         }
 
         private void SpawnPlant(PlantSaveEntry entry)

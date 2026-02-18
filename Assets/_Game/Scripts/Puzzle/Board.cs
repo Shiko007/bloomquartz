@@ -43,7 +43,16 @@ namespace Bloomquartz.Puzzle
             int level = SaveSystem.Instance?.Data.highestLevel ?? 0;
             startMoves = LevelConfig.GetMoves(level);
 
+            // Evolution bonus: sum all plant evolution levels → +10% score per level
+            int totalEvo = 0;
+            var plants = SaveSystem.Instance?.Data.plants;
+            if (plants != null)
+                foreach (var p in plants)
+                    totalEvo += p.evolutionLevel;
+
+            ScoreManager.Instance.SetEvolutionBonus(totalEvo);
             ScoreManager.Instance.Init(startMoves);
+            HUDController.Instance?.RefreshGemCount();
             GenerateBoard();
 
             // Self-bootstrap juice components if scene setup hasn't been re-run
@@ -298,6 +307,118 @@ namespace Bloomquartz.Puzzle
             GemType tmp = s[x1, y1];
             s[x1, y1]   = s[x2, y2];
             s[x2, y2]   = tmp;
+        }
+
+        // ── Power-ups ─────────────────────────────────────────────────────────
+
+        /// Spend 200 gems to buy 5 extra moves.
+        public void BuyMoves()
+        {
+            const int cost = 200;
+            if (SaveSystem.Instance == null) return;
+            if (SaveSystem.Instance.Data.totalGems < cost) return;
+            SaveSystem.Instance.Data.totalGems -= cost;
+            SaveSystem.Instance.Save();
+            ScoreManager.Instance.AddMoves(5);
+            HUDController.Instance?.RefreshGemCount();
+            Audio.AudioManager.Instance?.PlaySFX("uiTap");
+            HapticFeedback.Light();
+        }
+
+        /// Spend 250 gems to clear all tiles of the most common colour.
+        public void BombPowerUp()
+        {
+            if (_isProcessing) return;
+            const int cost = 250;
+            if (SaveSystem.Instance == null) return;
+            if (SaveSystem.Instance.Data.totalGems < cost) return;
+            SaveSystem.Instance.Data.totalGems -= cost;
+            SaveSystem.Instance.Save();
+            HUDController.Instance?.RefreshGemCount();
+            StartCoroutine(DoBomb());
+        }
+
+        private IEnumerator DoBomb()
+        {
+            _isProcessing = true;
+            _isCascade    = false;
+
+            // Find the most common non-empty gem type
+            var counts = new Dictionary<GemType, int>();
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    if (!_grid[x, y].IsEmpty())
+                    {
+                        var t = _grid[x, y].GemType;
+                        counts[t] = counts.TryGetValue(t, out var c) ? c + 1 : 1;
+                    }
+
+            GemType target = GemType.Red;
+            int maxCount = 0;
+            foreach (var kv in counts)
+                if (kv.Value > maxCount) { maxCount = kv.Value; target = kv.Key; }
+
+            var toRemove = new List<Tile>();
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    if (!_grid[x, y].IsEmpty() && _grid[x, y].GemType == target)
+                        toRemove.Add(_grid[x, y]);
+
+            if (toRemove.Count > 0)
+                yield return StartCoroutine(ProcessMatches(toRemove));
+
+            _isProcessing = false;
+            WinLoseController.Instance?.CheckEndCondition();
+        }
+
+        /// Spend 150 gems to randomly shuffle all tiles on the board.
+        public void ShufflePowerUp()
+        {
+            if (_isProcessing) return;
+            const int cost = 150;
+            if (SaveSystem.Instance == null) return;
+            if (SaveSystem.Instance.Data.totalGems < cost) return;
+            SaveSystem.Instance.Data.totalGems -= cost;
+            SaveSystem.Instance.Save();
+            HUDController.Instance?.RefreshGemCount();
+            StartCoroutine(DoShuffle());
+        }
+
+        private IEnumerator DoShuffle()
+        {
+            _isProcessing = true;
+            CameraShaker.Instance?.Shake(0.3f, 0.08f);
+            Audio.AudioManager.Instance?.PlaySFX("swap");
+
+            // Collect all current gem types, Fisher-Yates shuffle, reassign
+            var types = new List<GemType>();
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    if (!_grid[x, y].IsEmpty())
+                        types.Add(_grid[x, y].GemType);
+
+            for (int i = types.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (types[i], types[j]) = (types[j], types[i]);
+            }
+
+            int idx = 0;
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    if (!_grid[x, y].IsEmpty())
+                        _grid[x, y].SetGemType(types[idx++], animate: true);
+
+            yield return new WaitForSeconds(0.3f);
+
+            // Clear any immediate matches the shuffle created
+            _isCascade = false;
+            List<Tile> cascade = MatchFinder.FindMatches(_grid, width, height);
+            if (cascade.Count > 0)
+                yield return StartCoroutine(ProcessMatches(cascade));
+
+            _isProcessing = false;
+            WinLoseController.Instance?.CheckEndCondition();
         }
 
         /// Checks the snapshot for any horizontal or vertical run of 3+.

@@ -110,8 +110,9 @@ namespace Bloomquartz.Editor
                 // GardenSlot script
                 var gs  = slotGO.AddComponent<Bloomquartz.Plants.GardenSlot>();
                 var gsSO = new SerializedObject(gs);
-                gsSO.FindProperty("slotIndex").intValue = i;
+                gsSO.FindProperty("slotIndex").intValue                = i;
                 gsSO.FindProperty("glowRenderer").objectReferenceValue = glowSr;
+                gsSO.FindProperty("plusLabel").objectReferenceValue    = plusTMP;
                 gsSO.ApplyModifiedProperties();
             }
 
@@ -165,18 +166,27 @@ namespace Bloomquartz.Editor
             var actionPanel = CreatePanel(canvasGO, "SlotActionPanel",
                 new Color(0.05f, 0.15f, 0.07f, 0.97f),
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, -200), new Vector2(500, 280));
+                new Vector2(0, -200), new Vector2(500, 320));
 
             var panelTitle = CreateText(actionPanel, "PanelTitle", "Empty Slot",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
                 new Vector2(0, -50), new Vector2(440, 60), 30);
 
-            var plantBtn  = CreateButton(actionPanel, "PlantButton",  "PLANT HERE",
-                new Vector2(0, -130), new Vector2(380, 75), 26, new Color(0.2f, 0.55f, 0.2f));
-            var evolveBtn = CreateButton(actionPanel, "EvolveButton", "EVOLVE",
-                new Vector2(0, -130), new Vector2(380, 75), 26, new Color(0.5f, 0.2f, 0.8f));
-            var closeBtn  = CreateButton(actionPanel, "CloseButton",  "CLOSE",
-                new Vector2(0, -210), new Vector2(200, 55), 22, new Color(0.3f, 0.1f, 0.1f));
+            // Production rate — shown when a plant is selected
+            var rateText = CreateText(actionPanel, "RateText", "1 gem every 30s",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(0, -105), new Vector2(420, 42), 20);
+            rateText.GetComponent<TextMeshProUGUI>().color = new Color(0.7f, 1f, 0.7f);
+            rateText.SetActive(false);
+
+            var plantBtn   = CreateButton(actionPanel, "PlantButton",   "PLANT HERE",
+                new Vector2(0, -160), new Vector2(380, 75), 26, new Color(0.2f, 0.55f, 0.2f));
+            var evolveBtn  = CreateButton(actionPanel, "EvolveButton",  "EVOLVE",
+                new Vector2(0, -160), new Vector2(380, 75), 26, new Color(0.5f, 0.2f, 0.8f));
+            var unlockBtn  = CreateButton(actionPanel, "UnlockButton",  "UNLOCK",
+                new Vector2(0, -160), new Vector2(380, 75), 26, new Color(0.6f, 0.45f, 0.05f));
+            var closeBtn   = CreateButton(actionPanel, "CloseButton",   "CLOSE",
+                new Vector2(0, -250), new Vector2(200, 55), 22, new Color(0.3f, 0.1f, 0.1f));
 
             actionPanel.SetActive(false);
 
@@ -202,8 +212,10 @@ namespace Bloomquartz.Editor
             uiSO.FindProperty("gemCountText").objectReferenceValue     = gemText.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("slotActionPanel").objectReferenceValue  = actionPanel;
             uiSO.FindProperty("slotPanelTitle").objectReferenceValue   = panelTitle.GetComponent<TextMeshProUGUI>();
+            uiSO.FindProperty("slotRateText").objectReferenceValue     = rateText.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("plantButton").objectReferenceValue      = plantBtn.GetComponent<Button>();
             uiSO.FindProperty("evolveButton").objectReferenceValue     = evolveBtn.GetComponent<Button>();
+            uiSO.FindProperty("unlockButton").objectReferenceValue     = unlockBtn.GetComponent<Button>();
             uiSO.FindProperty("closeButton").objectReferenceValue      = closeBtn.GetComponent<Button>();
             uiSO.FindProperty("offlinePanel").objectReferenceValue     = offlinePanel;
             uiSO.FindProperty("offlineText").objectReferenceValue      = offlineText.GetComponent<TextMeshProUGUI>();
@@ -213,6 +225,7 @@ namespace Bloomquartz.Editor
             WireButton(menuBtn,   ui, "OnMenuPressed");
             WireButton(plantBtn,  ui, "OnPlantPressed");
             WireButton(evolveBtn, ui, "OnEvolvePressed");
+            WireButton(unlockBtn, ui, "OnUnlockPressed");
             WireButton(closeBtn,  ui, "OnClosePanel");
             WireButton(claimBtn,  ui, "OnClaimOfflineReward");
 

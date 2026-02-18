@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using Bloomquartz.Puzzle;
+using Bloomquartz.Core;
 
 namespace Bloomquartz.UI
 {
@@ -15,6 +16,7 @@ namespace Bloomquartz.UI
 
         [Header("Goals")]
         [SerializeField] private TextMeshProUGUI goalText;
+        [SerializeField] private TextMeshProUGUI gemCountText;
 
         [Header("Combo")]
         [SerializeField] private TextMeshProUGUI comboText;
@@ -61,6 +63,13 @@ namespace Bloomquartz.UI
         {
             if (goalText != null)
                 goalText.text = text;
+        }
+
+        public void RefreshGemCount()
+        {
+            if (gemCountText == null) return;
+            int gems = SaveSystem.Instance?.Data.totalGems ?? 0;
+            gemCountText.text = $"Gems: {gems:N0}";
         }
 
         public void ShowComboText(int multiplier)

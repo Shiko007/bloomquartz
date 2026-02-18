@@ -14,6 +14,7 @@ namespace Bloomquartz.Plants
         [SerializeField] private SpriteRenderer plantRenderer;
         [SerializeField] private SpriteRenderer glowRenderer;
         [SerializeField] private TextMeshPro gemReadyLabel;
+        [SerializeField] private TextMeshPro plusLabel;
 
         // Seconds to produce one gem per evolution level (0-4)
         private static readonly float[] ProductionRates = { 30f, 22f, 15f, 10f, 6f };
@@ -30,10 +31,13 @@ namespace Bloomquartz.Plants
 
         private bool  _hasPlant;
         private bool  _gemReady;
+        private bool  _isLocked;
         private float _pulseTimer;
         private int   _evolutionLevel;
         private float _productionTimer;
         private int   _pendingGems;
+
+        public bool IsLocked => _isLocked;
 
         public int  GetSlotIndex()      => slotIndex;
         public int  GetEvolutionLevel() => _evolutionLevel;
@@ -41,6 +45,17 @@ namespace Bloomquartz.Plants
         // ── Returns the glow colour matching the current evolution level ──────
         private Color EvolutionGlowColor() =>
             EvolveColors[Mathf.Clamp(_evolutionLevel, 0, EvolveColors.Length - 1)];
+
+        public void SetLocked(bool locked)
+        {
+            _isLocked = locked;
+            if (glowRenderer != null)
+                glowRenderer.color = locked
+                    ? new Color(0.6f, 0.1f, 0.1f, 0.35f)
+                    : (_hasPlant ? EvolutionGlowColor() : new Color(0.5f, 0.5f, 0.5f, 0.15f));
+            if (plusLabel != null)
+                plusLabel.text = locked ? "LOCK" : "+";
+        }
 
         // ── Called by PlantGarden.LoadGarden to restore persisted state ───────
         public void SetEvolutionLevel(int level)
@@ -136,6 +151,13 @@ namespace Bloomquartz.Plants
 
         public void OnPointerClick(PointerEventData _)
         {
+            if (_isLocked)
+            {
+                GardenUI.Instance?.OnLockedSlotTapped(slotIndex);
+                HapticFeedback.Light();
+                return;
+            }
+
             // Collect pending gems first; don't open the action panel
             if (_hasPlant && _pendingGems > 0)
             {

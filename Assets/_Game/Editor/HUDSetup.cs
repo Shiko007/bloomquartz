@@ -60,6 +60,12 @@ namespace Bloomquartz.Editor
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1), // top center
                 new Vector2(0, -60), new Vector2(340, 60), 20);
 
+            // Gem count — below goal (so player knows how much they have for power-ups)
+            var gemCountGO = CreateAnchoredText(hudCanvas, "GemCountText", "Gems: 0",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(0, -115), new Vector2(300, 46), 17);
+            gemCountGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.88f, 0.3f);
+
             // Combo — mid screen
             var comboGO = CreateAnchoredText(hudCanvas, "ComboText", "x2 COMBO!",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
@@ -72,7 +78,8 @@ namespace Bloomquartz.Editor
             var hudSO   = new SerializedObject(hudCtrl);
             hudSO.FindProperty("scoreText").objectReferenceValue = scoreGO.GetComponent<TextMeshProUGUI>();
             hudSO.FindProperty("movesText").objectReferenceValue = movesGO.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("goalText").objectReferenceValue  = goalGO.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("goalText").objectReferenceValue     = goalGO.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("gemCountText").objectReferenceValue  = gemCountGO.GetComponent<TextMeshProUGUI>();
             hudSO.FindProperty("comboText").objectReferenceValue = comboGO.GetComponent<TextMeshProUGUI>();
             hudSO.FindProperty("comboRect").objectReferenceValue = comboGO.GetComponent<RectTransform>();
             hudSO.ApplyModifiedProperties();
@@ -161,6 +168,28 @@ namespace Bloomquartz.Editor
             WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
 
+            // ── POWER-UP PANEL (bottom of screen) ────────────────────
+            var board = boardGO?.GetComponent<Bloomquartz.Puzzle.Board>();
+
+            var powerupPanel = new GameObject("PowerupPanel");
+            powerupPanel.transform.SetParent(hudCanvas.transform, false);
+            var prt = powerupPanel.AddComponent<RectTransform>();
+            prt.anchorMin        = new Vector2(0.5f, 0f);
+            prt.anchorMax        = new Vector2(0.5f, 0f);
+            prt.anchoredPosition = new Vector2(0, 100);
+            prt.sizeDelta        = new Vector2(720, 90);
+
+            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves\n200g",  new Vector2(-230, 0), new Vector2(210, 80), new Color(0.15f, 0.45f, 0.15f));
+            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb\n250g",       new Vector2(0,    0), new Vector2(210, 80), new Color(0.50f, 0.15f, 0.10f));
+            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle\n150g",    new Vector2(230,  0), new Vector2(210, 80), new Color(0.15f, 0.25f, 0.50f));
+
+            if (board != null)
+            {
+                WireButtonToComponent(movesBtn,   board, "BuyMoves");
+                WireButtonToComponent(bombBtn,    board, "BombPowerUp");
+                WireButtonToComponent(shuffleBtn, board, "ShufflePowerUp");
+            }
+
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────
             var amGO = new GameObject("AudioManager");
             amGO.AddComponent<Bloomquartz.Audio.AudioManager>();
@@ -244,6 +273,22 @@ namespace Bloomquartz.Editor
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
             return go;
+        }
+
+        private static void WireButtonToComponent(GameObject btnGO,
+            UnityEngine.Component ctrl, string methodName)
+        {
+            var btn = btnGO?.GetComponent<Button>();
+            if (btn == null) return;
+            var so    = new SerializedObject(btn);
+            var calls = so.FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
+            calls.arraySize++;
+            var call = calls.GetArrayElementAtIndex(calls.arraySize - 1);
+            call.FindPropertyRelative("m_Target").objectReferenceValue = ctrl;
+            call.FindPropertyRelative("m_MethodName").stringValue      = methodName;
+            call.FindPropertyRelative("m_Mode").intValue               = 1;
+            call.FindPropertyRelative("m_CallState").intValue          = 2;
+            so.ApplyModifiedProperties();
         }
 
         private static void WireButton(GameObject panel, string btnName,

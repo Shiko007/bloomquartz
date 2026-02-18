@@ -17,16 +17,22 @@ namespace Bloomquartz.UI
         [Header("Slot Panel")]
         [SerializeField] private GameObject slotActionPanel;
         [SerializeField] private TextMeshProUGUI slotPanelTitle;
+        [SerializeField] private TextMeshProUGUI slotRateText;
         [SerializeField] private Button plantButton;
         [SerializeField] private Button evolveButton;
+        [SerializeField] private Button unlockButton;
         [SerializeField] private Button closeButton;
 
         [Header("Offline Reward")]
         [SerializeField] private GameObject offlinePanel;
         [SerializeField] private TextMeshProUGUI offlineText;
 
-        private const int PlantCost = 50;
+        private const int PlantCost  = 50;
+        private const int UnlockCost = 500;
         private static int EvolveCost(int evoLevel) => 100 * (evoLevel + 1);
+
+        // Mirrors GardenSlot.ProductionRates — one gem per N seconds per evo level
+        private static readonly float[] ProductionRates = { 30f, 22f, 15f, 10f, 6f };
 
         private int _selectedSlot    = -1;
         private int _selectedEvoLevel = 0;
@@ -58,6 +64,7 @@ namespace Bloomquartz.UI
         {
             _selectedSlot = slotIndex;
             slotActionPanel?.SetActive(true);
+            unlockButton?.gameObject.SetActive(false);
 
             if (hasPlant)
             {
@@ -72,6 +79,14 @@ namespace Bloomquartz.UI
                             _selectedEvoLevel = s.GetEvolutionLevel();
                             break;
                         }
+
+                // Show production rate
+                if (slotRateText != null)
+                {
+                    float rate = ProductionRates[Mathf.Clamp(_selectedEvoLevel, 0, ProductionRates.Length - 1)];
+                    slotRateText.text = $"1 gem every {rate:F0}s";
+                    slotRateText.gameObject.SetActive(true);
+                }
 
                 if (canEvolve)
                 {
@@ -91,11 +106,50 @@ namespace Bloomquartz.UI
             else
             {
                 slotPanelTitle.text = "Empty Slot";
+                slotRateText?.gameObject.SetActive(false);
                 plantButton?.gameObject.SetActive(true);
                 evolveButton?.gameObject.SetActive(false);
                 var tmp = plantButton?.GetComponentInChildren<TextMeshProUGUI>();
                 if (tmp != null) tmp.text = $"PLANT  ({PlantCost} gems)";
             }
+        }
+
+        public void OnLockedSlotTapped(int slotIndex)
+        {
+            _selectedSlot = slotIndex;
+            slotActionPanel?.SetActive(true);
+            slotPanelTitle.text = "Locked Slot";
+            slotRateText?.gameObject.SetActive(false);
+            plantButton?.gameObject.SetActive(false);
+            evolveButton?.gameObject.SetActive(false);
+
+            if (unlockButton != null)
+            {
+                unlockButton.gameObject.SetActive(true);
+                var tmp = unlockButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (tmp != null) tmp.text = $"UNLOCK  ({UnlockCost} gems)";
+            }
+        }
+
+        public void OnUnlockPressed()
+        {
+            if (_selectedSlot < 0) return;
+            int gems = SaveSystem.Instance?.Data.totalGems ?? 0;
+            if (gems < UnlockCost)
+            {
+                slotPanelTitle.text = $"Need {UnlockCost - gems} more gems!";
+                AudioManager.Instance?.PlaySFX("uiTap");
+                return;
+            }
+
+            SaveSystem.Instance.Data.totalGems -= UnlockCost;
+            SaveSystem.Instance.Data.unlockedAreas[_selectedSlot] = true;
+            SaveSystem.Instance.Save();
+            PlantGarden.Instance?.UnlockSlot(_selectedSlot);
+            slotActionPanel?.SetActive(false);
+            RefreshGemCount();
+            AudioManager.Instance?.PlaySFX("evolution");
+            Idle.IdleManager.Instance?.CalculateAndApplyEarnings();
         }
 
         public void OnPlantPressed()
