@@ -353,7 +353,7 @@ namespace Bloomquartz.Puzzle
                         counts[t] = counts.TryGetValue(t, out var c) ? c + 1 : 1;
                     }
 
-            GemType target = GemType.Red;
+            GemType target = GemType.Ruby;
             int maxCount = 0;
             foreach (var kv in counts)
                 if (kv.Value > maxCount) { maxCount = kv.Value; target = kv.Key; }
