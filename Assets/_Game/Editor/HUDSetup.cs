@@ -195,6 +195,12 @@ namespace Bloomquartz.Editor
             WireButtonToComponent(bombBtn,    powerupHandler, "BombPowerUp");
             WireButtonToComponent(shuffleBtn, powerupHandler, "ShufflePowerUp");
 
+            // Menu button — top-left corner, below the score text
+            var menuBtn = CreateButton(hudCanvas, "MenuButton", "< Menu",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(60, -195), new Vector2(110, 46), new Color(0.15f, 0.15f, 0.25f));
+            WireButtonToComponent(menuBtn, powerupHandler, "GoToMenu");
+
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────
             var amGO = new GameObject("AudioManager");
             amGO.AddComponent<Bloomquartz.Audio.AudioManager>();
@@ -259,6 +265,18 @@ namespace Bloomquartz.Editor
             tmp.fontSize  = fontSize;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color     = Color.white;
+            return go;
+        }
+
+        // Overload: explicit anchor min/max for corner-pinned buttons
+        private static GameObject CreateButton(GameObject parent, string name, string label,
+            Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 anchoredPos, Vector2 size, Color? bgColor = null)
+        {
+            var go = CreateButton(parent, name, label, anchoredPos, size, bgColor);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
             return go;
         }
 

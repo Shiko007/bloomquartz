@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Bloomquartz.Puzzle;
 
 namespace Bloomquartz.UI
@@ -8,8 +9,9 @@ namespace Bloomquartz.UI
     /// directly (which may not exist when the Editor setup script runs).
     public class PowerupHandler : MonoBehaviour
     {
-        public void BuyMoves()      => Board.Instance?.BuyMoves();
-        public void BombPowerUp()   => Board.Instance?.BombPowerUp();
-        public void ShufflePowerUp()=> Board.Instance?.ShufflePowerUp();
+        public void BuyMoves()       => Board.Instance?.BuyMoves();
+        public void BombPowerUp()    => Board.Instance?.BombPowerUp();
+        public void ShufflePowerUp() => Board.Instance?.ShufflePowerUp();
+        public void GoToMenu()       => SceneManager.LoadScene("MainMenu");
     }
 }
