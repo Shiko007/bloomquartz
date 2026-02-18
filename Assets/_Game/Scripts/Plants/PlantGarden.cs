@@ -27,6 +27,17 @@ namespace Bloomquartz.Plants
                 new GameObject("SaveSystem").AddComponent<Core.SaveSystem>();
         }
 
+        private void OnDestroy()
+        {
+            // Stamp the exit time so IdleManager can calculate earnings on return
+            if (Core.SaveSystem.Instance != null)
+            {
+                Core.SaveSystem.Instance.Data.lastGardenExitTime =
+                    System.DateTime.UtcNow.ToBinary();
+                Core.SaveSystem.Instance.Save();
+            }
+        }
+
         private void Start()
         {
             int count = gardenSlots != null ? gardenSlots.Length : 6;

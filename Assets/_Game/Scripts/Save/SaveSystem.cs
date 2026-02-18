@@ -49,6 +49,7 @@ namespace Bloomquartz.Core
     public class SaveData
     {
         public long lastSaveTime;
+        public long lastGardenExitTime; // set whenever the Garden scene is unloaded
         public int totalGems;
         public int currentWorld;
         public int highestLevel;

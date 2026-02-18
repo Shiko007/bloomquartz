@@ -139,13 +139,18 @@ namespace Bloomquartz.UI
 
         private void CheckOfflineReward()
         {
+            // Trigger calculation before reading the result
+            Idle.IdleManager.Instance?.CalculateAndApplyEarnings();
+
+            RefreshGemCount();
+
             var idle = Idle.IdleManager.Instance;
             if (offlinePanel == null) return;
             if (idle != null && idle.HasOfflineReward())
             {
                 offlinePanel.SetActive(true);
                 if (offlineText != null)
-                    offlineText.text = $"+{idle.PendingOfflineGems} gems collected while away!";
+                    offlineText.text = $"+{idle.PendingOfflineGems} gems while you were away!";
             }
             else
             {
