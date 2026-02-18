@@ -42,34 +42,39 @@ namespace Bloomquartz.Editor
             scaler.matchWidthOrHeight  = 0.5f;
             hudCanvas.AddComponent<GraphicRaycaster>();
 
-            // ── HUD ELEMENTS (anchored to screen edges) ───────────
+            // ── HUD ELEMENTS ──────────────────────────────────────
+            // Layout (all anchored to top, fitting inside ~220px safe zone):
+            //  Row 1 (y -65):  Score (left) | Level / Goal (center) | Moves (right)
+            //  Row 2 (y -110): Gem count (center, gold)
+            //  Row 3 (y -168): [+5 Moves 200g] [Bomb 250g] [Shuffle 150g]  ← power-ups
+            //  Board begins below this safe zone.
 
             // Score — top left
             var scoreGO = CreateAnchoredText(hudCanvas, "ScoreText", "Score\n<b>0</b>",
-                new Vector2(0, 1), new Vector2(0, 1),   // top-left anchor
-                new Vector2(160, -80), new Vector2(260, 90), 24);
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(130, -65), new Vector2(220, 75), 22);
 
             // Moves — top right
             var movesGO = CreateAnchoredText(hudCanvas, "MovesText", "Moves\n<b>30</b>",
-                new Vector2(1, 1), new Vector2(1, 1),   // top-right anchor
-                new Vector2(-160, -80), new Vector2(260, 90), 24);
+                new Vector2(1, 1), new Vector2(1, 1),
+                new Vector2(-130, -65), new Vector2(220, 75), 22);
             movesGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Right;
 
             // Goal — top center
             var goalGO = CreateAnchoredText(hudCanvas, "GoalText", "Goal: 2,000",
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1), // top center
-                new Vector2(0, -60), new Vector2(340, 60), 20);
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(0, -50), new Vector2(360, 52), 19);
 
-            // Gem count — below goal (so player knows how much they have for power-ups)
+            // Gem count — below goal (gold, so player knows budget for power-ups)
             var gemCountGO = CreateAnchoredText(hudCanvas, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -115), new Vector2(300, 46), 17);
+                new Vector2(0, -98), new Vector2(280, 40), 16);
             gemCountGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.88f, 0.3f);
 
-            // Combo — mid screen
+            // Combo — mid screen (above board centre)
             var comboGO = CreateAnchoredText(hudCanvas, "ComboText", "x2 COMBO!",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, 120), new Vector2(440, 70), 38);
+                new Vector2(0, 160), new Vector2(440, 70), 38);
             comboGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.9f, 0.2f);
             comboGO.SetActive(false);
 
@@ -168,20 +173,20 @@ namespace Bloomquartz.Editor
             WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
 
-            // ── POWER-UP PANEL (bottom of screen) ────────────────────
+            // ── POWER-UP PANEL (row 3 of top HUD — above the board) ─────
             var board = boardGO?.GetComponent<Bloomquartz.Puzzle.Board>();
 
             var powerupPanel = new GameObject("PowerupPanel");
             powerupPanel.transform.SetParent(hudCanvas.transform, false);
             var prt = powerupPanel.AddComponent<RectTransform>();
-            prt.anchorMin        = new Vector2(0.5f, 0f);
-            prt.anchorMax        = new Vector2(0.5f, 0f);
-            prt.anchoredPosition = new Vector2(0, 100);
-            prt.sizeDelta        = new Vector2(720, 90);
+            prt.anchorMin        = new Vector2(0.5f, 1f);  // anchor top-center
+            prt.anchorMax        = new Vector2(0.5f, 1f);
+            prt.anchoredPosition = new Vector2(0, -168);   // row 3 of HUD
+            prt.sizeDelta        = new Vector2(1040, 62);
 
-            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves\n200g",  new Vector2(-230, 0), new Vector2(210, 80), new Color(0.15f, 0.45f, 0.15f));
-            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb\n250g",       new Vector2(0,    0), new Vector2(210, 80), new Color(0.50f, 0.15f, 0.10f));
-            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle\n150g",    new Vector2(230,  0), new Vector2(210, 80), new Color(0.15f, 0.25f, 0.50f));
+            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves  200g",  new Vector2(-340, 0), new Vector2(320, 58), new Color(0.15f, 0.45f, 0.15f));
+            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb  250g",       new Vector2(0,    0), new Vector2(320, 58), new Color(0.50f, 0.15f, 0.10f));
+            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle  150g",    new Vector2(340,  0), new Vector2(320, 58), new Color(0.15f, 0.25f, 0.50f));
 
             if (board != null)
             {
