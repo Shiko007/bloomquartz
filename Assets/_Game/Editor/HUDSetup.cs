@@ -90,7 +90,7 @@ namespace Bloomquartz.Editor
 
             // ── WIN PANEL ─────────────────────────────────────────
             var winPanel = CreateCenteredPanel(hudCanvas, "WinPanel",
-                new Color(0.05f, 0.35f, 0.1f, 0.97f), new Vector2(560, 480));
+                new Color(0.05f, 0.35f, 0.1f, 0.97f), new Vector2(560, 540));
 
             CreateAnchoredText(winPanel, "WinTitle", "YOU WIN!",
                 new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-70), new Vector2(460,80), 52)
@@ -117,8 +117,12 @@ namespace Bloomquartz.Editor
                 starImages[i] = img;
             }
 
-            CreateButton(winPanel, "RetryButton",  "RETRY",    new Vector2(-130, -310), new Vector2(200, 65));
-            CreateButton(winPanel, "NextButton",   "GARDEN →", new Vector2(130,  -310), new Vector2(200, 65));
+            // Primary action: NEXT LEVEL — large, centered, accent colour
+            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL ▶", new Vector2(0, -310), new Vector2(380, 72),
+                new Color(0.12f, 0.55f, 0.20f));
+            // Secondary actions: RETRY and GARDEN side-by-side below
+            CreateButton(winPanel, "RetryButton",  "RETRY",    new Vector2(-130, -400), new Vector2(190, 58));
+            CreateButton(winPanel, "NextButton",   "GARDEN →", new Vector2(130,  -400), new Vector2(190, 58));
             winPanel.SetActive(false);
 
             // ── LOSE PANEL ────────────────────────────────────────
@@ -151,8 +155,9 @@ namespace Bloomquartz.Editor
                 starsArr.GetArrayElementAtIndex(i).objectReferenceValue = starImages[i];
             wlSO.ApplyModifiedProperties();
 
-            WireButton(winPanel,  "RetryButton",  wlCtrl, "OnRetryPressed");
-            WireButton(winPanel,  "NextButton",   wlCtrl, "OnNextPressed");
+            WireButton(winPanel,  "NextLevelButton", wlCtrl, "OnNextLevelPressed");
+            WireButton(winPanel,  "RetryButton",     wlCtrl, "OnRetryPressed");
+            WireButton(winPanel,  "NextButton",      wlCtrl, "OnNextPressed");
             WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
 
@@ -217,7 +222,7 @@ namespace Bloomquartz.Editor
         }
 
         private static GameObject CreateButton(GameObject parent, string name, string label,
-            Vector2 anchoredPos, Vector2 size)
+            Vector2 anchoredPos, Vector2 size, Color? bgColor = null)
         {
             var go  = new GameObject(name);
             go.transform.SetParent(parent.transform, false);
@@ -227,7 +232,7 @@ namespace Bloomquartz.Editor
             rt.anchoredPosition = anchoredPos;
             rt.sizeDelta        = size;
             var img = go.AddComponent<Image>();
-            img.color = new Color(0.18f, 0.18f, 0.32f);
+            img.color = bgColor ?? new Color(0.18f, 0.18f, 0.32f);
             go.AddComponent<Button>();
 
             var labelGO = new GameObject("Label");

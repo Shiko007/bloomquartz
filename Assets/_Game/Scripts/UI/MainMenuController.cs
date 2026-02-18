@@ -16,7 +16,8 @@ namespace Bloomquartz.UI
         private void Start()
         {
             StartCoroutine(IntroAnimation());
-            CheckOfflineReward();
+            // Offline reward is shown in the Garden, not here.
+            offlineRewardPanel?.SetActive(false);
         }
 
         private IEnumerator IntroAnimation()

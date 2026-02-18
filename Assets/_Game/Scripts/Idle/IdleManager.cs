@@ -25,8 +25,8 @@ namespace Bloomquartz.Idle
 
         private void Start()
         {
-            // First-launch / app-restart calculation uses lastGardenExitTime
-            CalculateAndApplyEarnings();
+            // Earnings are calculated in GardenUI.CheckOfflineReward() when
+            // the player enters the Garden, so nothing to do here.
         }
 
         /// Calculates gems earned since the last Garden exit, adds them to the
