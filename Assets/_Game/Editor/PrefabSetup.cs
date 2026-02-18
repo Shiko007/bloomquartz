@@ -214,6 +214,69 @@ namespace Bloomquartz.Editor
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
+        [MenuItem("Bloomquartz/Create Star Sprite")]
+        public static Sprite CreateStarSprite()
+        {
+            EnsureFolder("Assets/_Game/Sprites/UI");
+            int size = 64;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+
+            // Clear to transparent
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                    tex.SetPixel(x, y, Color.clear);
+
+            // Draw a 5-pointed star
+            float cx = size / 2f, cy = size / 2f;
+            float outerR = size / 2f - 2f, innerR = outerR * 0.42f;
+            int points = 5;
+
+            // Build star polygon vertices
+            var verts = new Vector2[points * 2];
+            for (int i = 0; i < points * 2; i++)
+            {
+                float angle = Mathf.PI / 2f + i * Mathf.PI / points;
+                float r = (i % 2 == 0) ? outerR : innerR;
+                verts[i] = new Vector2(cx + r * Mathf.Cos(angle), cy + r * Mathf.Sin(angle));
+            }
+
+            // Fill star using point-in-polygon per pixel
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    if (PointInPolygon(new Vector2(x, y), verts))
+                        tex.SetPixel(x, y, Color.white);
+                }
+            }
+            tex.Apply();
+
+            string path = "Assets/_Game/Sprites/UI/Star.png";
+            File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(path);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.textureType      = TextureImporterType.Sprite;
+            importer.spritePixelsPerUnit = 64;
+            AssetDatabase.ImportAsset(path);
+
+            Debug.Log("[Bloomquartz] Star sprite created at " + path);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        private static bool PointInPolygon(Vector2 p, Vector2[] poly)
+        {
+            bool inside = false;
+            int n = poly.Length;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                if (((poly[i].y > p.y) != (poly[j].y > p.y)) &&
+                    (p.x < (poly[j].x - poly[i].x) * (p.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
+                    inside = !inside;
+            }
+            return inside;
+        }
+
         private static void EnsureFolder(string path)
         {
             if (!AssetDatabase.IsValidFolder(path))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Bloomquartz.Gems;
 using Bloomquartz.Juice;
+using Bloomquartz.UI;
 
 namespace Bloomquartz.Puzzle
 {
@@ -11,17 +12,18 @@ namespace Bloomquartz.Puzzle
         public static Board Instance { get; private set; }
 
         [Header("Board Config")]
-        [SerializeField] private int width = 7;
-        [SerializeField] private int height = 7;
+        [SerializeField] private int width    = 7;
+        [SerializeField] private int height   = 7;
         [SerializeField] private float tileSize = 1.1f;
+        [SerializeField] private int startMoves = 30;
 
         [Header("Prefabs")]
         [SerializeField] private Tile tilePrefab;
 
-        [Header("State")]
         private Tile[,] _grid;
         private Tile _selectedTile;
         private bool _isProcessing;
+        private bool _isCascade;
 
         public bool IsProcessing => _isProcessing;
 
@@ -32,6 +34,7 @@ namespace Bloomquartz.Puzzle
 
         private void Start()
         {
+            ScoreManager.Instance.Init(startMoves);
             GenerateBoard();
         }
 
@@ -46,15 +49,46 @@ namespace Bloomquartz.Puzzle
                 {
                     Vector3 pos = origin + new Vector3(x * tileSize, y * tileSize, 0);
                     Tile tile = Instantiate(tilePrefab, pos, Quaternion.identity, transform);
-                    tile.Init(x, y, GetRandomGemType());
+                    tile.Init(x, y, GetSafeGemType(x, y));
                     _grid[x, y] = tile;
                 }
             }
         }
 
+        /// Returns a random GemType that won't create a 3-in-a-row/column
+        /// with already-placed neighbours to the left and below.
+        private GemType GetSafeGemType(int x, int y)
+        {
+            var all = (GemType[])System.Enum.GetValues(typeof(GemType));
+            var forbidden = new System.Collections.Generic.HashSet<GemType>();
+
+            // Horizontal: block if left two tiles share the same type
+            if (x >= 2 &&
+                _grid[x - 1, y].GemType == _grid[x - 2, y].GemType)
+                forbidden.Add(_grid[x - 1, y].GemType);
+
+            // Vertical: block if bottom two tiles share the same type
+            if (y >= 2 &&
+                _grid[x, y - 1].GemType == _grid[x, y - 2].GemType)
+                forbidden.Add(_grid[x, y - 1].GemType);
+
+            // Build allowed list and pick randomly
+            var allowed = new System.Collections.Generic.List<GemType>();
+            foreach (var g in all)
+                if (!forbidden.Contains(g))
+                    allowed.Add(g);
+
+            // Fallback to full list if somehow all are forbidden
+            if (allowed.Count == 0)
+                return all[Random.Range(0, all.Length)];
+
+            return allowed[Random.Range(0, allowed.Count)];
+        }
+
         public void OnTileSelected(Tile tile)
         {
             if (_isProcessing) return;
+            if (ScoreManager.Instance.MovesLeft <= 0) return;
 
             if (_selectedTile == null)
             {
@@ -83,6 +117,7 @@ namespace Bloomquartz.Puzzle
         private IEnumerator SwapAndMatch(Tile a, Tile b)
         {
             _isProcessing = true;
+            _isCascade    = false;
 
             yield return StartCoroutine(SwapTiles(a, b));
 
@@ -95,8 +130,14 @@ namespace Bloomquartz.Puzzle
                 yield break;
             }
 
+            // Valid move — consume one move
+            ScoreManager.Instance.UseMove();
+
             yield return StartCoroutine(ProcessMatches(matched));
+
             _isProcessing = false;
+
+            WinLoseController.Instance?.CheckEndCondition();
         }
 
         private IEnumerator SwapTiles(Tile a, Tile b)
@@ -109,6 +150,9 @@ namespace Bloomquartz.Puzzle
 
         private IEnumerator ProcessMatches(List<Tile> matched)
         {
+            ScoreManager.Instance.RegisterMatch(matched.Count, _isCascade);
+            _isCascade = true;
+
             foreach (Tile t in matched)
             {
                 JuiceManager.Instance.PlayGemPop(t.transform.position, t.GemType);
