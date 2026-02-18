@@ -20,6 +20,7 @@ namespace Bloomquartz.Plants
 
         public PlantData Data => data;
         public int EvolutionLevel => _evolutionLevel;
+        public int GetSlotIndex() => _saveEntry?.slotIndex ?? -1;
 
         public void Init(PlantSaveEntry entry)
         {
