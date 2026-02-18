@@ -25,9 +25,9 @@ namespace Bloomquartz.Editor
             // remaining playable area instead of the raw screen centre.
             if (boardGO != null)
             {
-                var cam = Object.FindObjectOfType<Camera>();
-                float orthoHeight = (cam != null && cam.orthographic)
-                    ? cam.orthographicSize * 2f
+                var boardCam = Object.FindObjectOfType<Camera>();
+                float orthoHeight = (boardCam != null && boardCam.orthographic)
+                    ? boardCam.orthographicSize * 2f
                     : 10f; // sensible fallback for a typical puzzle board camera
                 const float hudPx     = 210f;
                 const float canvasPx  = 1920f;

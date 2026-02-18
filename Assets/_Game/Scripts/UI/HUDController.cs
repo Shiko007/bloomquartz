@@ -32,6 +32,10 @@ namespace Bloomquartz.UI
             ScoreManager.Instance.OnScoreChanged += UpdateScore;
             ScoreManager.Instance.OnMovesChanged += UpdateMoves;
 
+            // Catch up if Board.Start() already fired Init before we subscribed
+            if (ScoreManager.Instance.MovesLeft > 0)
+                UpdateMoves(ScoreManager.Instance.MovesLeft);
+
             if (comboText != null)
                 comboText.gameObject.SetActive(false);
         }
