@@ -31,6 +31,10 @@ namespace Bloomquartz.Puzzle
         private void Awake()
         {
             Instance = this;
+
+            // Ensure SaveSystem exists when starting directly from PuzzleBoard scene
+            if (SaveSystem.Instance == null)
+                new GameObject("SaveSystem").AddComponent<SaveSystem>();
         }
 
         private void Start()

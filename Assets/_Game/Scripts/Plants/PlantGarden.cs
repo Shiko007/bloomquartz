@@ -21,6 +21,10 @@ namespace Bloomquartz.Plants
         private void Awake()
         {
             Instance = this;
+
+            // Ensure SaveSystem exists when starting directly from Garden scene
+            if (Core.SaveSystem.Instance == null)
+                new GameObject("SaveSystem").AddComponent<Core.SaveSystem>();
         }
 
         private void Start()
