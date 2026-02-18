@@ -19,6 +19,22 @@ namespace Bloomquartz.Editor
             if (boardGO != null && boardGO.GetComponent<Bloomquartz.Puzzle.ScoreManager>() == null)
                 boardGO.AddComponent<Bloomquartz.Puzzle.ScoreManager>();
 
+            // ── CENTRE BOARD IN THE AREA BELOW THE HUD ───────────
+            // The HUD occupies ~210 px at the top of a 1920 px canvas.
+            // Shift the board down so it is visually centred in the
+            // remaining playable area instead of the raw screen centre.
+            if (boardGO != null)
+            {
+                var cam = Object.FindObjectOfType<Camera>();
+                float orthoHeight = (cam != null && cam.orthographic)
+                    ? cam.orthographicSize * 2f
+                    : 10f; // sensible fallback for a typical puzzle board camera
+                const float hudPx     = 210f;
+                const float canvasPx  = 1920f;
+                float yOffset = -(orthoHeight * (hudPx / canvasPx)) / 2f;
+                boardGO.transform.position = new Vector3(0f, yOffset, 0f);
+            }
+
             // Remove old objects to rebuild cleanly
             DestroyIfExists("HUDCanvas");
             DestroyIfExists("WinLoseController");
