@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
 using Bloomquartz.UI;
+using Bloomquartz.Audio;
 
 namespace Bloomquartz.Plants
 {
@@ -43,6 +44,7 @@ namespace Bloomquartz.Plants
         {
             if (!CanEvolve()) return;
             _evolutionLevel++;
+            AudioManager.Instance?.PlaySFX("evolution");
             // Brighten glow color per evolution level
             if (glowRenderer != null)
             {

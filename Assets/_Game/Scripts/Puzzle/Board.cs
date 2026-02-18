@@ -146,13 +146,29 @@ namespace Bloomquartz.Puzzle
             GemType tempType = a.GemType;
             a.SetGemType(b.GemType, animate: true);
             b.SetGemType(tempType, animate: true);
+            Audio.AudioManager.Instance?.PlaySFX("swap");
             yield return new WaitForSeconds(0.2f);
         }
 
         private IEnumerator ProcessMatches(List<Tile> matched)
         {
             ScoreManager.Instance.RegisterMatch(matched.Count, _isCascade);
+
+            // Camera shake — heavier on cascades
+            float shakeDur = _isCascade ? 0.22f : 0.14f;
+            float shakeMag = _isCascade ? 0.10f : 0.05f;
+            CameraShaker.Instance?.Shake(shakeDur, shakeMag);
+
+            // Floating score text at centroid of matched tiles
+            Vector3 centroid = Vector3.zero;
+            foreach (Tile t in matched) centroid += t.transform.position;
+            centroid /= matched.Count;
+            Color popColor = _isCascade ? new Color(1f, 0.9f, 0.2f) : Color.white;
+            FloatingTextPool.Instance?.Spawn(centroid, "+" + matched.Count, popColor);
+
             _isCascade = true;
+
+            Audio.AudioManager.Instance?.PlaySFX("gemPop");
 
             foreach (Tile t in matched)
             {

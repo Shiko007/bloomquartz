@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Bloomquartz.Juice;
 
 namespace Bloomquartz.Audio
 {
@@ -16,7 +17,7 @@ namespace Bloomquartz.Audio
         [SerializeField] private AudioClip puzzleMusic;
         [SerializeField] private AudioClip gardenMusic;
 
-        [Header("SFX")]
+        [Header("SFX (leave empty to use procedural audio)")]
         [SerializeField] private AudioClip gemPopSfx;
         [SerializeField] private AudioClip gemSparkSfx;
         [SerializeField] private AudioClip swapSfx;
@@ -39,7 +40,22 @@ namespace Bloomquartz.Audio
                 { "evolution", evolutionSfx },
                 { "uiTap",     uiTapSfx }
             };
+
+            // Fill any missing SFX with procedurally generated clips
+            FillProceduralFallbacks();
         }
+
+        private void FillProceduralFallbacks()
+        {
+            if (!HasClip("gemPop"))    _sfxMap["gemPop"]    = ProceduralAudio.CreatePop(660f);
+            if (!HasClip("gemSpark"))  _sfxMap["gemSpark"]  = ProceduralAudio.CreateTone(880f, 0.25f, 0.3f);
+            if (!HasClip("swap"))      _sfxMap["swap"]      = ProceduralAudio.CreatePop(440f);
+            if (!HasClip("evolution")) _sfxMap["evolution"] = ProceduralAudio.CreateChime(440f, 4, 0.12f);
+            if (!HasClip("uiTap"))     _sfxMap["uiTap"]     = ProceduralAudio.CreatePop(550f);
+        }
+
+        private bool HasClip(string key) =>
+            _sfxMap.TryGetValue(key, out var c) && c != null;
 
         public void PlayMusic(string sceneName)
         {

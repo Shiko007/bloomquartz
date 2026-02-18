@@ -23,6 +23,7 @@ namespace Bloomquartz.Editor
             DestroyIfExists("HUDCanvas");
             DestroyIfExists("WinLoseController");
             DestroyIfExists("EventSystem");
+            DestroyIfExists("FloatingTextPool");
 
             // EventSystem — required for all UI button clicks
             var esGO = new GameObject("EventSystem");
@@ -153,6 +154,15 @@ namespace Bloomquartz.Editor
             WireButton(winPanel,  "NextButton",   wlCtrl, "OnNextPressed");
             WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
+
+            // ── CAMERA SHAKER ─────────────────────────────────────
+            var cam = GameObject.Find("Main Camera");
+            if (cam != null && cam.GetComponent<Bloomquartz.Juice.CameraShaker>() == null)
+                cam.AddComponent<Bloomquartz.Juice.CameraShaker>();
+
+            // ── FLOATING TEXT POOL ────────────────────────────────
+            var ftpGO = new GameObject("FloatingTextPool");
+            ftpGO.AddComponent<Bloomquartz.Juice.FloatingTextPool>();
 
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.Refresh();
