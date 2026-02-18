@@ -147,7 +147,10 @@ namespace Bloomquartz.UI
             else UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
 
-        public void OnNextPressed() =>
-            UnityEngine.SceneManagement.SceneManager.LoadScene("PuzzleBoard");
+        public void OnNextPressed()
+        {
+            if (GameManager.Instance != null) GameManager.Instance.GoToGarden();
+            else UnityEngine.SceneManagement.SceneManager.LoadScene("Garden");
+        }
     }
 }
