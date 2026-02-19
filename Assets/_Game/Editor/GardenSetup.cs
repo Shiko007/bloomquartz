@@ -166,7 +166,7 @@ namespace Bloomquartz.Editor
             // Gem count — below Dynamic Island (reference 390×844 → font sizes in pt)
             var gemText = CreateText(topSafe, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -32), new Vector2(200, 40), 22);
+                new Vector2(0, -32), new Vector2(200, 40), 16);
             gemText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.92f, 0.3f);
 
             // Garden title
@@ -178,14 +178,15 @@ namespace Bloomquartz.Editor
             // Bottom nav buttons — anchored to bottom corners, y=80pt above screen bottom
             // so they clear both the home-indicator (34pt) and iPhone rounded corners (~40pt).
             var puzzleBtn = CreateButton(canvasGO, "PuzzleButton", "PUZZLE",
-                new Vector2(75, 80), new Vector2(130, 52), 18,
+                new Vector2(75, 80), new Vector2(130, 52), 14,
                 new Color(0.4f, 0.1f, 0.7f));
             var puzzleRT = puzzleBtn.GetComponent<RectTransform>();
             puzzleRT.anchorMin = new Vector2(0, 0);
             puzzleRT.anchorMax = new Vector2(0, 0);
 
+            // x = -(width/2 + margin) = -(55+10) = -65 so RIGHT EDGE is 10pt from right (matches PUZZLE left edge)
             var menuBtn = CreateButton(canvasGO, "MenuButton", "MENU",
-                new Vector2(-75, 80), new Vector2(110, 52), 18,
+                new Vector2(-65, 80), new Vector2(110, 52), 14,
                 new Color(0.2f, 0.2f, 0.35f));
             var menuRT = menuBtn.GetComponent<RectTransform>();
             menuRT.anchorMin = new Vector2(1, 0);
@@ -199,23 +200,23 @@ namespace Bloomquartz.Editor
 
             var panelTitle = CreateText(actionPanel, "PanelTitle", "Empty Slot",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -50), new Vector2(440, 60), 30);
+                new Vector2(0, -50), new Vector2(440, 60), 20);
 
             // Production rate — shown when a plant is selected
             var rateText = CreateText(actionPanel, "RateText", "1 gem every 30s",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -105), new Vector2(420, 42), 20);
+                new Vector2(0, -105), new Vector2(420, 42), 14);
             rateText.GetComponent<TextMeshProUGUI>().color = new Color(0.7f, 1f, 0.7f);
             rateText.SetActive(false);
 
             var plantBtn   = CreateButton(actionPanel, "PlantButton",   "PLANT HERE",
-                new Vector2(0, -160), new Vector2(380, 75), 26, new Color(0.2f, 0.55f, 0.2f));
+                new Vector2(0, -160), new Vector2(380, 75), 16, new Color(0.2f, 0.55f, 0.2f));
             var evolveBtn  = CreateButton(actionPanel, "EvolveButton",  "EVOLVE",
-                new Vector2(0, -160), new Vector2(380, 75), 26, new Color(0.5f, 0.2f, 0.8f));
+                new Vector2(0, -160), new Vector2(380, 75), 16, new Color(0.5f, 0.2f, 0.8f));
             var unlockBtn  = CreateButton(actionPanel, "UnlockButton",  "UNLOCK",
-                new Vector2(0, -160), new Vector2(380, 75), 26, new Color(0.6f, 0.45f, 0.05f));
+                new Vector2(0, -160), new Vector2(380, 75), 16, new Color(0.6f, 0.45f, 0.05f));
             var closeBtn   = CreateButton(actionPanel, "CloseButton",   "CLOSE",
-                new Vector2(0, -250), new Vector2(200, 55), 22, new Color(0.3f, 0.1f, 0.1f));
+                new Vector2(0, -250), new Vector2(200, 55), 14, new Color(0.3f, 0.1f, 0.1f));
 
             actionPanel.SetActive(false);
 
@@ -223,16 +224,16 @@ namespace Bloomquartz.Editor
             var offlinePanel = CreatePanel(canvasGO, "OfflinePanel",
                 new Color(0.08f, 0.08f, 0.2f, 0.97f),
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(580, 200));
+                Vector2.zero, new Vector2(360, 200));
 
             var offlineText = CreateText(offlinePanel, "OfflineText",
                 "+0 gems while away!",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -55), new Vector2(520, 65), 26);
+                new Vector2(0, -55), new Vector2(320, 65), 18);
             offlineText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.9f, 0.4f);
 
             var claimBtn = CreateButton(offlinePanel, "ClaimButton", "CLAIM",
-                new Vector2(0, -140), new Vector2(240, 65), 26, new Color(0.3f, 0.5f, 0.1f));
+                new Vector2(0, -140), new Vector2(240, 65), 16, new Color(0.3f, 0.5f, 0.1f));
             offlinePanel.SetActive(false);
 
             // ── Wire GardenUI ──────────────────────────────────────

@@ -76,31 +76,33 @@ namespace Bloomquartz.Editor
             // Row 4 (y-112): [+5 Moves] [Bomb] [Shuffle]
 
             // Score — top left, symmetric inset
+            // anchoredPosition.x = width/2 + margin = 50+10 = 60 so the LEFT EDGE is 10pt inset
+            // (with pivot (0.5,0.5), using x=10 would place the center 10pt from edge → left edge at -40)
             var scoreGO = CreateAnchoredText(safePanel, "ScoreText", "Score\n<b>0</b>",
                 new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -26), new Vector2(100, 48), 18);
+                new Vector2(60, -26), new Vector2(100, 48), 13);
 
-            // Moves — top right, same inset as Score for perfect symmetry
+            // Moves — top right, same inset: x = -(width/2 + margin) = -(50+10) = -60
             var movesGO = CreateAnchoredText(safePanel, "MovesText", "Moves\n<b>30</b>",
                 new Vector2(1, 1), new Vector2(1, 1),
-                new Vector2(-10, -26), new Vector2(100, 48), 18);
+                new Vector2(-60, -26), new Vector2(100, 48), 13);
             movesGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Right;
 
             // Goal — top center
             var goalGO = CreateAnchoredText(safePanel, "GoalText", "Level 1 | Goal: 800",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -58), new Vector2(220, 28), 15);
+                new Vector2(0, -58), new Vector2(220, 28), 12);
 
             // Gem count — center-left of row 3
             var gemCountGO = CreateAnchoredText(safePanel, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(-38, -84), new Vector2(165, 24), 14);
+                new Vector2(-38, -84), new Vector2(165, 24), 11);
             gemCountGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.88f, 0.3f);
 
             // Combo — mid screen
             var comboGO = CreateAnchoredText(safePanel, "ComboText", "x2 COMBO!",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, 80), new Vector2(200, 42), 24);
+                new Vector2(0, 80), new Vector2(200, 42), 18);
             comboGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.9f, 0.2f);
             comboGO.SetActive(false);
 
@@ -131,11 +133,11 @@ namespace Bloomquartz.Editor
                 new Color(0.05f, 0.35f, 0.1f, 0.97f), new Vector2(300, 330));
 
             CreateAnchoredText(winPanel, "WinTitle", "YOU WIN!",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-42), new Vector2(270,52), 28)
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-42), new Vector2(270,52), 22)
                 .GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.95f, 0.3f);
 
             var winScore = CreateAnchoredText(winPanel, "WinScore", "Score: 0",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-102), new Vector2(250,34), 17);
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-102), new Vector2(250,34), 14);
 
             var starSprite = PrefabSetup.CreateStarSprite();
             var starImages = new Image[3];
@@ -154,10 +156,20 @@ namespace Bloomquartz.Editor
                 starImages[i] = img;
             }
 
-            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL >>", new Vector2(0, -200), new Vector2(240, 48),
+            // Buttons use anchor=(0.5,1) so y is measured from the PANEL TOP.
+            // With panel height=330 (top at +165 from center):
+            //   NextLevel center = 165-210 = -45 → bottom = -69  (within ±165) ✓
+            //   Retry/Garden center = 165-267 = -102 → bottom = -123 (within ±165) ✓
+            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL >>",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(0, -210), new Vector2(240, 48),
                 new Color(0.12f, 0.55f, 0.20f));
-            CreateButton(winPanel, "RetryButton",  "RETRY",    new Vector2(-68, -262), new Vector2(118, 42));
-            CreateButton(winPanel, "NextButton",   "GARDEN →", new Vector2( 68, -262), new Vector2(118, 42));
+            CreateButton(winPanel, "RetryButton",  "RETRY",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(-68, -267), new Vector2(118, 42));
+            CreateButton(winPanel, "NextButton",   "GARDEN →",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2( 68, -267), new Vector2(118, 42));
             winPanel.SetActive(false);
 
             // ── LOSE PANEL (280×240 pt) ───────────────────────────
@@ -165,14 +177,20 @@ namespace Bloomquartz.Editor
                 new Color(0.38f, 0.04f, 0.04f, 0.97f), new Vector2(300, 250));
 
             CreateAnchoredText(losePanel, "LoseTitle", "OUT OF MOVES",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-42), new Vector2(270,46), 22)
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-42), new Vector2(270,46), 18)
                 .GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.35f, 0.2f);
 
             var loseScore = CreateAnchoredText(losePanel, "LoseScore", "Score: 0",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-100), new Vector2(250,34), 17);
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-100), new Vector2(250,34), 14);
 
-            CreateButton(losePanel, "RetryButton2", "TRY AGAIN", new Vector2(-68, -168), new Vector2(118, 42));
-            CreateButton(losePanel, "MenuButton",   "MENU",      new Vector2( 68, -168), new Vector2(118, 42));
+            // anchor=(0.5,1): panel height=250 (top at +125 from center)
+            //   Buttons center = 125-154 = -29 → bottom = -50 (within ±125) ✓
+            CreateButton(losePanel, "RetryButton2", "TRY AGAIN",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(-68, -154), new Vector2(118, 42));
+            CreateButton(losePanel, "MenuButton",   "MENU",
+                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2( 68, -154), new Vector2(118, 42));
             losePanel.SetActive(false);
 
             // ── WinLoseController ─────────────────────────────────
@@ -220,7 +238,8 @@ namespace Bloomquartz.Editor
             // < Menu — right side of row 3, same Y as GemCount
             var menuBtn = CreateButton(safePanel, "MenuButton", "< Menu",
                 new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(-10f, -84f), new Vector2(72f, 28f), new Color(0.15f, 0.15f, 0.35f));
+                // x = -(width/2 + margin) = -(36+10) = -46 so RIGHT EDGE is 10pt from right
+                new Vector2(-46f, -84f), new Vector2(72f, 28f), new Color(0.15f, 0.15f, 0.35f));
             WireButtonToComponent(menuBtn, powerupHandler, "GoToMenu");
 
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────
@@ -321,7 +340,7 @@ namespace Bloomquartz.Editor
             var lrt = labelGO.AddComponent<RectTransform>();
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one; lrt.sizeDelta = Vector2.zero;
             var tmp = labelGO.AddComponent<TextMeshProUGUI>();
-            tmp.text = label; tmp.fontSize = 22;
+            tmp.text = label; tmp.fontSize = 13;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
             return go;
