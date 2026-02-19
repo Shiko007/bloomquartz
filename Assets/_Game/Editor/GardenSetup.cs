@@ -101,7 +101,7 @@ namespace Bloomquartz.Editor
                 bgSr.sprite       = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
                 bgSr.color        = new Color(0.12f, 0.25f, 0.12f, 0.8f);
                 bgSr.sortingOrder = 0;
-                bgGO.transform.localScale = Vector3.one * 1.8f;
+                bgGO.transform.localScale = Vector3.one * 3.0f;   // larger for portrait phones
 
                 // Glow ring
                 var glowGO = new GameObject("Glow");
@@ -110,7 +110,7 @@ namespace Bloomquartz.Editor
                 glowSr.sprite       = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
                 glowSr.color        = new Color(0.5f, 0.5f, 0.5f, 0.15f);
                 glowSr.sortingOrder = 1;
-                glowGO.transform.localScale = Vector3.one * 2f;
+                glowGO.transform.localScale = Vector3.one * 3.4f;
 
                 // Plus label for empty slots
                 var plusGO = new GameObject("PlusLabel");
@@ -123,9 +123,9 @@ namespace Bloomquartz.Editor
                 plusTMP.color     = new Color(1f, 1f, 1f, 0.4f);
                 plusTMP.sortingOrder = 2;
 
-                // Collider for tapping
+                // Collider for tapping — sized to match the larger slot circle
                 var col = slotGO.AddComponent<CircleCollider2D>();
-                col.radius = 0.9f;
+                col.radius = 1.4f;
 
                 // GardenSlot script
                 var gs  = slotGO.AddComponent<Bloomquartz.Plants.GardenSlot>();
@@ -151,32 +151,41 @@ namespace Bloomquartz.Editor
             canvas.sortingOrder = 10;
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight  = 0.5f;
+            scaler.referenceResolution = new Vector2(390, 844);
+            scaler.matchWidthOrHeight  = 1f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
-            // Gem count — top center
-            var gemText = CreateText(canvasGO, "GemCountText", "Gems: 0",
+            // ── TOP STRIP — safe-area panel so gems sit below Dynamic Island ──
+            var topSafe = new GameObject("TopSafePanel");
+            topSafe.transform.SetParent(canvasGO.transform, false);
+            var tsRt = topSafe.AddComponent<RectTransform>();
+            tsRt.anchorMin = Vector2.zero; tsRt.anchorMax = Vector2.one;
+            tsRt.offsetMin = Vector2.zero; tsRt.offsetMax = Vector2.zero;
+            topSafe.AddComponent<Bloomquartz.UI.SafeAreaFitter>();
+
+            // Gem count — below Dynamic Island (reference 390×844 → font sizes in pt)
+            var gemText = CreateText(topSafe, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -70), new Vector2(400, 80), 36);
+                new Vector2(0, -32), new Vector2(200, 40), 22);
             gemText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.92f, 0.3f);
 
             // Garden title
-            var titleText = CreateText(canvasGO, "TitleText", "GARDEN",
+            var titleText = CreateText(topSafe, "TitleText", "GARDEN",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -130), new Vector2(400, 55), 22);
+                new Vector2(0, -66), new Vector2(200, 26), 14);
             titleText.GetComponent<TextMeshProUGUI>().color = new Color(0.6f, 1f, 0.6f);
 
-            // Bottom nav buttons
+            // Bottom nav buttons — anchored to bottom corners, y=80pt above screen bottom
+            // so they clear both the home-indicator (34pt) and iPhone rounded corners (~40pt).
             var puzzleBtn = CreateButton(canvasGO, "PuzzleButton", "PUZZLE",
-                new Vector2(160, 70), new Vector2(260, 80), 26,
+                new Vector2(75, 80), new Vector2(130, 52), 18,
                 new Color(0.4f, 0.1f, 0.7f));
             var puzzleRT = puzzleBtn.GetComponent<RectTransform>();
             puzzleRT.anchorMin = new Vector2(0, 0);
             puzzleRT.anchorMax = new Vector2(0, 0);
 
             var menuBtn = CreateButton(canvasGO, "MenuButton", "MENU",
-                new Vector2(-160, 70), new Vector2(220, 80), 26,
+                new Vector2(-75, 80), new Vector2(110, 52), 18,
                 new Color(0.2f, 0.2f, 0.35f));
             var menuRT = menuBtn.GetComponent<RectTransform>();
             menuRT.anchorMin = new Vector2(1, 0);

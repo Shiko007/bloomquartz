@@ -48,19 +48,20 @@ namespace Bloomquartz.Editor
             esGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
             // ── CANVAS ────────────────────────────────────────────
+            // Reference 390×844 ≈ iPhone logical-point size → fontSize values map
+            // directly to screen points (no 40% shrinkage from the old 1080×1920 ref).
             var hudCanvas = new GameObject("HUDCanvas");
             var canvas    = hudCanvas.AddComponent<Canvas>();
-            canvas.renderMode  = RenderMode.ScreenSpaceOverlay;
+            canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 10;
             var scaler = hudCanvas.AddComponent<CanvasScaler>();
             scaler.uiScaleMode         = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight  = 0.5f;
+            scaler.referenceResolution = new Vector2(390, 844);
+            scaler.matchWidthOrHeight  = 1f;   // match height → consistent vertical layout
             hudCanvas.AddComponent<GraphicRaycaster>();
 
             // ── SAFE-AREA PANEL ───────────────────────────────────
-            // SafeAreaFitter adjusts this panel's anchors to the device safe area
-            // at runtime, so all HUD content is pushed below the Dynamic Island / notch.
+            // SafeAreaFitter pushes everything below the Dynamic Island at runtime.
             var safePanel = new GameObject("SafeAreaPanel");
             safePanel.transform.SetParent(hudCanvas.transform, false);
             var spRt = safePanel.AddComponent<RectTransform>();
@@ -68,55 +69,53 @@ namespace Bloomquartz.Editor
             spRt.offsetMin = Vector2.zero; spRt.offsetMax = Vector2.zero;
             safePanel.AddComponent<Bloomquartz.UI.SafeAreaFitter>();
 
-            // ── HUD ELEMENTS (all inside SafeAreaPanel) ───────────
-            // Layout anchored to SafeAreaPanel top:
-            //  Row 1 (y -55):  Score (left) | Moves (right, inset 155px)
-            //  Row 2 (y -105): Goal (center)
-            //  Row 3 (y -152): GemCount (center-left) | < Menu (top-right)
-            //  Row 4 (y -205): [+5 Moves 200g]  [Bomb 250g]  [Shuffle 150g]
-            //  Combo label: mid-screen
+            // ── HUD ELEMENTS (all inside SafeAreaPanel, positions in logical pt) ──
+            // Row 1 (y -26): Score (left, 10pt inset) | Moves (right, 10pt inset)
+            // Row 2 (y -58): Level | Goal (center)
+            // Row 3 (y -84): Gems (center-left) | < Menu (right, 10pt inset)
+            // Row 4 (y-112): [+5 Moves] [Bomb] [Shuffle]
 
-            // Score — top left
+            // Score — top left, symmetric inset
             var scoreGO = CreateAnchoredText(safePanel, "ScoreText", "Score\n<b>0</b>",
                 new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(120, -55), new Vector2(200, 68), 20);
+                new Vector2(10, -26), new Vector2(100, 48), 18);
 
-            // Moves — top right (inset 155 px so it never clips on narrow phones)
+            // Moves — top right, same inset as Score for perfect symmetry
             var movesGO = CreateAnchoredText(safePanel, "MovesText", "Moves\n<b>30</b>",
                 new Vector2(1, 1), new Vector2(1, 1),
-                new Vector2(-155, -55), new Vector2(200, 68), 20);
+                new Vector2(-10, -26), new Vector2(100, 48), 18);
             movesGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Right;
 
             // Goal — top center
-            var goalGO = CreateAnchoredText(safePanel, "GoalText", "Goal: 2,000",
+            var goalGO = CreateAnchoredText(safePanel, "GoalText", "Level 1 | Goal: 800",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -105), new Vector2(320, 46), 17);
+                new Vector2(0, -58), new Vector2(220, 28), 15);
 
-            // Gem count — row 3, slightly left of centre to leave room for Menu button
+            // Gem count — center-left of row 3
             var gemCountGO = CreateAnchoredText(safePanel, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(-80, -152), new Vector2(260, 36), 14);
+                new Vector2(-38, -84), new Vector2(165, 24), 14);
             gemCountGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.88f, 0.3f);
 
             // Combo — mid screen
             var comboGO = CreateAnchoredText(safePanel, "ComboText", "x2 COMBO!",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, 160), new Vector2(440, 70), 38);
+                new Vector2(0, 80), new Vector2(200, 42), 24);
             comboGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.9f, 0.2f);
             comboGO.SetActive(false);
 
             // HUDController
             var hudCtrl = safePanel.AddComponent<Bloomquartz.UI.HUDController>();
             var hudSO   = new SerializedObject(hudCtrl);
-            hudSO.FindProperty("scoreText").objectReferenceValue = scoreGO.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("movesText").objectReferenceValue = movesGO.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("scoreText").objectReferenceValue    = scoreGO.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("movesText").objectReferenceValue    = movesGO.GetComponent<TextMeshProUGUI>();
             hudSO.FindProperty("goalText").objectReferenceValue     = goalGO.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("gemCountText").objectReferenceValue  = gemCountGO.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("comboText").objectReferenceValue = comboGO.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("comboRect").objectReferenceValue = comboGO.GetComponent<RectTransform>();
+            hudSO.FindProperty("gemCountText").objectReferenceValue = gemCountGO.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("comboText").objectReferenceValue    = comboGO.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("comboRect").objectReferenceValue    = comboGO.GetComponent<RectTransform>();
             hudSO.ApplyModifiedProperties();
 
-            // ── BLOCKER (fullscreen, sits behind panels, blocks board clicks) ──
+            // ── BLOCKER ───────────────────────────────────────────
             var blocker = new GameObject("Blocker");
             blocker.transform.SetParent(hudCanvas.transform, false);
             var brt = blocker.AddComponent<RectTransform>();
@@ -124,21 +123,20 @@ namespace Bloomquartz.Editor
             brt.offsetMin = Vector2.zero; brt.offsetMax = Vector2.zero;
             var bImg = blocker.AddComponent<Image>();
             bImg.color = new Color(0, 0, 0, 0.55f);
-            blocker.AddComponent<Button>(); // swallows clicks
+            blocker.AddComponent<Button>();
             blocker.SetActive(false);
 
-            // ── WIN PANEL ─────────────────────────────────────────
+            // ── WIN PANEL (280×320 pt) ────────────────────────────
             var winPanel = CreateCenteredPanel(hudCanvas, "WinPanel",
-                new Color(0.05f, 0.35f, 0.1f, 0.97f), new Vector2(560, 540));
+                new Color(0.05f, 0.35f, 0.1f, 0.97f), new Vector2(300, 330));
 
             CreateAnchoredText(winPanel, "WinTitle", "YOU WIN!",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-70), new Vector2(460,80), 52)
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-42), new Vector2(270,52), 28)
                 .GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.95f, 0.3f);
 
             var winScore = CreateAnchoredText(winPanel, "WinScore", "Score: 0",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-150), new Vector2(420,55), 28);
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-102), new Vector2(250,34), 17);
 
-            // Stars as Image components using generated star sprite
             var starSprite = PrefabSetup.CreateStarSprite();
             var starImages = new Image[3];
             for (int i = 0; i < 3; i++)
@@ -148,35 +146,33 @@ namespace Bloomquartz.Editor
                 var rt = sGO.AddComponent<RectTransform>();
                 rt.anchorMin        = new Vector2(0.5f, 1f);
                 rt.anchorMax        = new Vector2(0.5f, 1f);
-                rt.anchoredPosition = new Vector2((i - 1) * 90f, -220);
-                rt.sizeDelta        = new Vector2(72, 72);
+                rt.anchoredPosition = new Vector2((i - 1) * 56f, -148);
+                rt.sizeDelta        = new Vector2(44, 44);
                 var img = sGO.AddComponent<Image>();
                 img.sprite = starSprite;
                 img.color  = new Color(1f, 1f, 1f, 0.2f);
                 starImages[i] = img;
             }
 
-            // Primary action: NEXT LEVEL — large, centered, accent colour
-            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL >>", new Vector2(0, -310), new Vector2(380, 72),
+            CreateButton(winPanel, "NextLevelButton", "NEXT LEVEL >>", new Vector2(0, -200), new Vector2(240, 48),
                 new Color(0.12f, 0.55f, 0.20f));
-            // Secondary actions: RETRY and GARDEN side-by-side below
-            CreateButton(winPanel, "RetryButton",  "RETRY",    new Vector2(-130, -400), new Vector2(190, 58));
-            CreateButton(winPanel, "NextButton",   "GARDEN →", new Vector2(130,  -400), new Vector2(190, 58));
+            CreateButton(winPanel, "RetryButton",  "RETRY",    new Vector2(-68, -262), new Vector2(118, 42));
+            CreateButton(winPanel, "NextButton",   "GARDEN →", new Vector2( 68, -262), new Vector2(118, 42));
             winPanel.SetActive(false);
 
-            // ── LOSE PANEL ────────────────────────────────────────
+            // ── LOSE PANEL (280×240 pt) ───────────────────────────
             var losePanel = CreateCenteredPanel(hudCanvas, "LosePanel",
-                new Color(0.38f, 0.04f, 0.04f, 0.97f), new Vector2(560, 380));
+                new Color(0.38f, 0.04f, 0.04f, 0.97f), new Vector2(300, 250));
 
             CreateAnchoredText(losePanel, "LoseTitle", "OUT OF MOVES",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-70), new Vector2(460,70), 38)
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-42), new Vector2(270,46), 22)
                 .GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.35f, 0.2f);
 
             var loseScore = CreateAnchoredText(losePanel, "LoseScore", "Score: 0",
-                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-150), new Vector2(420,55), 28);
+                new Vector2(0.5f,1), new Vector2(0.5f,1), new Vector2(0,-100), new Vector2(250,34), 17);
 
-            CreateButton(losePanel, "RetryButton2", "TRY AGAIN", new Vector2(-130, -250), new Vector2(200, 65));
-            CreateButton(losePanel, "MenuButton",   "MENU",      new Vector2(130,  -250), new Vector2(200, 65));
+            CreateButton(losePanel, "RetryButton2", "TRY AGAIN", new Vector2(-68, -168), new Vector2(118, 42));
+            CreateButton(losePanel, "MenuButton",   "MENU",      new Vector2( 68, -168), new Vector2(118, 42));
             losePanel.SetActive(false);
 
             // ── WinLoseController ─────────────────────────────────
@@ -197,12 +193,10 @@ namespace Bloomquartz.Editor
             WireButton(winPanel,  "NextLevelButton", wlCtrl, "OnNextLevelPressed");
             WireButton(winPanel,  "RetryButton",     wlCtrl, "OnRetryPressed");
             WireButton(winPanel,  "NextButton",      wlCtrl, "OnNextPressed");
-            WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
-            WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
+            WireButton(losePanel, "RetryButton2",    wlCtrl, "OnRetryPressed");
+            WireButton(losePanel, "MenuButton",      wlCtrl, "OnMenuPressed");
 
-            // ── POWER-UP PANEL (row 4 of top HUD) ────────────────
-            // PowerupHandler lives on the SafeAreaPanel so it is always present.
-            // Menu button is the leftmost item in this row to avoid overlapping other elements.
+            // ── POWER-UP PANEL (row 4) ────────────────────────────
             var powerupHandler = safePanel.AddComponent<Bloomquartz.UI.PowerupHandler>();
 
             var powerupPanel = new GameObject("PowerupPanel");
@@ -210,23 +204,23 @@ namespace Bloomquartz.Editor
             var prt = powerupPanel.AddComponent<RectTransform>();
             prt.anchorMin        = new Vector2(0.5f, 1f);
             prt.anchorMax        = new Vector2(0.5f, 1f);
-            prt.anchoredPosition = new Vector2(0f, -205f);
-            prt.sizeDelta        = new Vector2(1040f, 56f);
+            prt.anchoredPosition = new Vector2(0f, -112f);
+            prt.sizeDelta        = new Vector2(376f, 40f);
 
-            // 3 power-up buttons equally spaced: each 280px, 2 gaps of 100px.
-            // Centers from panel centre: -380, 0, +380.
-            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves  200g",  new Vector2(-380f, 0f), new Vector2(280f, 52f), new Color(0.15f, 0.45f, 0.15f));
-            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb  250g",      new Vector2(   0f, 0f), new Vector2(280f, 52f), new Color(0.50f, 0.15f, 0.10f));
-            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle  150g",   new Vector2( 380f, 0f), new Vector2(280f, 52f), new Color(0.15f, 0.25f, 0.50f));
+            // 3 buttons × 112pt + 2 × 20pt gap = 376pt panel
+            // centres: -132, 0, +132
+            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves 200g", new Vector2(-132f, 0f), new Vector2(112f, 36f), new Color(0.15f, 0.45f, 0.15f));
+            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb 250g",     new Vector2(   0f, 0f), new Vector2(112f, 36f), new Color(0.50f, 0.15f, 0.10f));
+            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle 150g",  new Vector2( 132f, 0f), new Vector2(112f, 36f), new Color(0.15f, 0.25f, 0.50f));
 
             WireButtonToComponent(movesBtn,   powerupHandler, "BuyMoves");
             WireButtonToComponent(bombBtn,    powerupHandler, "BombPowerUp");
             WireButtonToComponent(shuffleBtn, powerupHandler, "ShufflePowerUp");
 
-            // < Menu button — row 3, right side (next to GemCount)
+            // < Menu — right side of row 3, same Y as GemCount
             var menuBtn = CreateButton(safePanel, "MenuButton", "< Menu",
                 new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(-70f, -152f), new Vector2(120f, 40f), new Color(0.15f, 0.15f, 0.35f));
+                new Vector2(-10f, -84f), new Vector2(72f, 28f), new Color(0.15f, 0.15f, 0.35f));
             WireButtonToComponent(menuBtn, powerupHandler, "GoToMenu");
 
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────

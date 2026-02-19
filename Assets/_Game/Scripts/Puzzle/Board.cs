@@ -67,7 +67,8 @@ namespace Bloomquartz.Puzzle
         private void GenerateBoard()
         {
             _grid = new Tile[width, height];
-            Vector3 origin = transform.position - new Vector3(width * tileSize / 2f, height * tileSize / 2f, 0);
+            // Use (width-1)*tileSize/2 so tile centres are symmetric around the board position.
+            Vector3 origin = transform.position - new Vector3((width - 1) * tileSize / 2f, (height - 1) * tileSize / 2f, 0);
 
             for (int x = 0; x < width; x++)
             {
