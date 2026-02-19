@@ -277,15 +277,17 @@ namespace Bloomquartz.Puzzle
             float boardH = height * tileSize;
             float aspect = (float)Screen.width / Screen.height;
 
-            // Minimum ortho size to fully show the board, then add 10% breathing room
+            // Minimum ortho size to fully show the board, then add 5% breathing room
             float sizeForWidth  = (boardW / 2f) / aspect;
             float sizeForHeight =  boardH / 2f;
-            cam.orthographicSize = Mathf.Max(sizeForWidth, sizeForHeight) * 1.1f;
+            cam.orthographicSize = Mathf.Max(sizeForWidth, sizeForHeight) * 1.05f;
 
-            // Shift the board down so it is centred in the playable area below the HUD.
-            // The HUD occupies ~15% of the screen height at the top.
-            float yOffset = -(cam.orthographicSize * 0.15f);
-            transform.position = new Vector3(0f, yOffset, 0f);
+            // Place the board so its TOP sits just below the HUD strip.
+            // The HUD (safe area + 4 UI rows) occupies roughly the top 24% of screen height.
+            // board_top  = cam_top - 24% of visible_height
+            // board_center = board_top - boardH/2
+            float boardY = cam.orthographicSize * (1f - 2f * 0.24f) - boardH / 2f;
+            transform.position = new Vector3(0f, boardY, 0f);
         }
 
         // ── Deadlock detection ────────────────────────────────────────────────

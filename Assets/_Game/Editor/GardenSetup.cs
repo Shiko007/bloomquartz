@@ -27,19 +27,23 @@ namespace Bloomquartz.Editor
                 cam.clearFlags      = CameraClearFlags.SolidColor;
                 cam.backgroundColor = new Color(0.04f, 0.1f, 0.04f);
                 cam.orthographic    = true;
-                cam.orthographicSize = 5.5f; // editor preview; CameraFitter overrides at runtime
-
                 // CameraFitter adjusts ortho size to the real device aspect ratio at runtime.
-                // Garden slots span ±3 horizontally and ±1.5 vertically (plus ~1 unit glow).
-                if (cam.GetComponent<Bloomquartz.Juice.CameraFitter>() == null)
+                // Garden uses a 3-row × 2-col portrait layout: slots at x=±1.5, y=±2.8 and 0.
+                // Half-extents: width=2.5 (±1.5 + ~1 glow), height=3.8 (±2.8 + ~1 glow).
+                // Always remove + re-add so values stay in sync if Setup is run multiple times.
+                var existingFitter = cam.GetComponent<Bloomquartz.Juice.CameraFitter>();
+                if (existingFitter != null) Object.DestroyImmediate(existingFitter);
                 {
                     var fitter   = cam.gameObject.AddComponent<Bloomquartz.Juice.CameraFitter>();
                     var fitterSO = new SerializedObject(fitter);
-                    fitterSO.FindProperty("worldHalfWidth").floatValue  = 4.2f; // slots ±3 + glow
-                    fitterSO.FindProperty("worldHalfHeight").floatValue = 2.8f; // slots ±1.5 + glow + UI
-                    fitterSO.FindProperty("padding").floatValue         = 1.12f;
+                    fitterSO.FindProperty("worldHalfWidth").floatValue  = 2.5f;
+                    fitterSO.FindProperty("worldHalfHeight").floatValue = 3.8f;
+                    fitterSO.FindProperty("padding").floatValue         = 1.1f;
                     fitterSO.ApplyModifiedProperties();
                 }
+
+                // Set editor preview size to match the runtime value (~6 for portrait iPhone)
+                cam.orthographicSize = 6.0f;
 
                 // Required for IPointerClickHandler on world-space GameObjects
                 if (cam.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() == null)
@@ -74,9 +78,12 @@ namespace Bloomquartz.Editor
             var slotsParent = new GameObject("GardenSlots");
             slotsParent.transform.SetParent(gardenRoot.transform);
 
+            // 3 rows × 2 columns — portrait layout that fits narrow iPhone screens.
+            // Columns at x = ±1.5,  rows at y = +2.8, 0, -2.8.
             Vector3[] positions = {
-                new Vector3(-3f,  1.5f, 0), new Vector3(0f,  1.5f, 0), new Vector3(3f,  1.5f, 0),
-                new Vector3(-3f, -1.5f, 0), new Vector3(0f, -1.5f, 0), new Vector3(3f, -1.5f, 0)
+                new Vector3(-1.5f,  2.8f, 0), new Vector3(1.5f,  2.8f, 0),
+                new Vector3(-1.5f,  0.0f, 0), new Vector3(1.5f,  0.0f, 0),
+                new Vector3(-1.5f, -2.8f, 0), new Vector3(1.5f, -2.8f, 0)
             };
 
             var slotTransforms = new Transform[6];
