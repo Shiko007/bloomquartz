@@ -81,6 +81,9 @@ namespace Bloomquartz.Editor
             var scoreGO = CreateAnchoredText(safePanel, "ScoreText", "Score\n<b>0</b>",
                 new Vector2(0, 1), new Vector2(0, 1),
                 new Vector2(60, -26), new Vector2(100, 48), 13);
+            // Left-align so the "S" of "Score" sits flush with the 10pt inset — matches
+            // the mirror right-align on Moves (right edge flush with 10pt inset on the right).
+            scoreGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Left;
 
             // Moves — top right, same inset: x = -(width/2 + margin) = -(50+10) = -60
             var movesGO = CreateAnchoredText(safePanel, "MovesText", "Moves\n<b>30</b>",
@@ -93,10 +96,10 @@ namespace Bloomquartz.Editor
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
                 new Vector2(0, -58), new Vector2(220, 28), 12);
 
-            // Gem count — center-left of row 3
+            // Gem count — centered in row 3 (Menu button moved to row 1 so x=0 now)
             var gemCountGO = CreateAnchoredText(safePanel, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(-38, -84), new Vector2(165, 24), 11);
+                new Vector2(0, -84), new Vector2(165, 24), 11);
             gemCountGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.88f, 0.3f);
 
             // Combo — mid screen
@@ -235,11 +238,12 @@ namespace Bloomquartz.Editor
             WireButtonToComponent(bombBtn,    powerupHandler, "BombPowerUp");
             WireButtonToComponent(shuffleBtn, powerupHandler, "ShufflePowerUp");
 
-            // < Menu — right side of row 3, same Y as GemCount
+            // < Menu — row 1 CENTER, between Score (x:10-110) and Moves (x:280-380).
+            // Button box at center = x:155-235 → no overlap with either stat box.
+            // This keeps it visually above Goal/Gems/Powerups and well away from Shuffle.
             var menuBtn = CreateButton(safePanel, "MenuButton", "< Menu",
-                new Vector2(1f, 1f), new Vector2(1f, 1f),
-                // x = -(width/2 + margin) = -(36+10) = -46 so RIGHT EDGE is 10pt from right
-                new Vector2(-46f, -84f), new Vector2(72f, 28f), new Color(0.15f, 0.15f, 0.35f));
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, -26f), new Vector2(80f, 28f), new Color(0.15f, 0.15f, 0.35f));
             WireButtonToComponent(menuBtn, powerupHandler, "GoToMenu");
 
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────

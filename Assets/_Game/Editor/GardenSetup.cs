@@ -197,30 +197,36 @@ namespace Bloomquartz.Editor
             menuRT.anchorMax = new Vector2(1, 0);
 
             // ── SLOT ACTION PANEL ──────────────────────────────────
+            // Panel 360×300 centered slightly below screen center.
+            // All child positions use anchor=(0.5,0.5) = PANEL CENTER.
+            // Panel spans ±150 pts vertically → all elements placed within that range.
             var actionPanel = CreatePanel(canvasGO, "SlotActionPanel",
                 new Color(0.05f, 0.15f, 0.07f, 0.97f),
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0, -200), new Vector2(500, 320));
+                new Vector2(0, -160), new Vector2(360, 300));
 
+            // y=+90: center at 90pt above panel center (top at +110 < +150) ✓
             var panelTitle = CreateText(actionPanel, "PanelTitle", "Empty Slot",
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -50), new Vector2(440, 60), 20);
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0, 90), new Vector2(320, 40), 20);
 
-            // Production rate — shown when a plant is selected
+            // y=+30: center at 30pt above panel center ✓
             var rateText = CreateText(actionPanel, "RateText", "1 gem every 30s",
-                new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -105), new Vector2(420, 42), 14);
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0, 30), new Vector2(300, 36), 14);
             rateText.GetComponent<TextMeshProUGUI>().color = new Color(0.7f, 1f, 0.7f);
             rateText.SetActive(false);
 
+            // y=-30: center 30pt below panel center, bottom at -56 (< 150) ✓
             var plantBtn   = CreateButton(actionPanel, "PlantButton",   "PLANT HERE",
-                new Vector2(0, -160), new Vector2(380, 75), 16, new Color(0.2f, 0.55f, 0.2f));
+                new Vector2(0, -30), new Vector2(320, 52), 16, new Color(0.2f, 0.55f, 0.2f));
             var evolveBtn  = CreateButton(actionPanel, "EvolveButton",  "EVOLVE",
-                new Vector2(0, -160), new Vector2(380, 75), 16, new Color(0.5f, 0.2f, 0.8f));
+                new Vector2(0, -30), new Vector2(320, 52), 16, new Color(0.5f, 0.2f, 0.8f));
             var unlockBtn  = CreateButton(actionPanel, "UnlockButton",  "UNLOCK",
-                new Vector2(0, -160), new Vector2(380, 75), 16, new Color(0.6f, 0.45f, 0.05f));
-            var closeBtn   = CreateButton(actionPanel, "CloseButton",   "CLOSE",
-                new Vector2(0, -250), new Vector2(200, 55), 14, new Color(0.3f, 0.1f, 0.1f));
+                new Vector2(0, -30), new Vector2(320, 52), 16, new Color(0.6f, 0.45f, 0.05f));
+            // y=-105: center at -105, bottom at -127 (< 150) ✓ — always visible inside panel
+            var closeBtn   = CreateButton(actionPanel, "CloseButton",   "CANCEL",
+                new Vector2(0, -105), new Vector2(200, 44), 14, new Color(0.3f, 0.1f, 0.1f));
 
             actionPanel.SetActive(false);
 
