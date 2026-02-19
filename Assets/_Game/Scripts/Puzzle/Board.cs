@@ -39,6 +39,10 @@ namespace Bloomquartz.Puzzle
 
         private void Start()
         {
+            // Fit the camera to the board dimensions on this device's aspect ratio,
+            // then shift the board down so it sits below the HUD strip.
+            FitCameraToBoard();
+
             // Scale moves from save level (falls back to Inspector value if no save)
             int level = SaveSystem.Instance?.Data.highestLevel ?? 0;
             startMoves = LevelConfig.GetMoves(level);
@@ -263,6 +267,26 @@ namespace Bloomquartz.Puzzle
         }
 
         public Tile GetTile(int x, int y) => _grid[x, y];
+
+        private void FitCameraToBoard()
+        {
+            var cam = Camera.main;
+            if (cam == null || !cam.orthographic) return;
+
+            float boardW = width  * tileSize;
+            float boardH = height * tileSize;
+            float aspect = (float)Screen.width / Screen.height;
+
+            // Minimum ortho size to fully show the board, then add 10% breathing room
+            float sizeForWidth  = (boardW / 2f) / aspect;
+            float sizeForHeight =  boardH / 2f;
+            cam.orthographicSize = Mathf.Max(sizeForWidth, sizeForHeight) * 1.1f;
+
+            // Shift the board down so it is centred in the playable area below the HUD.
+            // The HUD occupies ~15% of the screen height at the top.
+            float yOffset = -(cam.orthographicSize * 0.15f);
+            transform.position = new Vector3(0f, yOffset, 0f);
+        }
 
         // ── Deadlock detection ────────────────────────────────────────────────
 

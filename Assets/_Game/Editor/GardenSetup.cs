@@ -24,10 +24,23 @@ namespace Bloomquartz.Editor
             var cam = Object.FindObjectOfType<Camera>();
             if (cam != null)
             {
-                cam.clearFlags       = CameraClearFlags.SolidColor;
-                cam.backgroundColor  = new Color(0.04f, 0.1f, 0.04f);
-                cam.orthographic     = true;
-                cam.orthographicSize = 5.5f;
+                cam.clearFlags      = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.04f, 0.1f, 0.04f);
+                cam.orthographic    = true;
+                cam.orthographicSize = 5.5f; // editor preview; CameraFitter overrides at runtime
+
+                // CameraFitter adjusts ortho size to the real device aspect ratio at runtime.
+                // Garden slots span ±3 horizontally and ±1.5 vertically (plus ~1 unit glow).
+                if (cam.GetComponent<Bloomquartz.Juice.CameraFitter>() == null)
+                {
+                    var fitter   = cam.gameObject.AddComponent<Bloomquartz.Juice.CameraFitter>();
+                    var fitterSO = new SerializedObject(fitter);
+                    fitterSO.FindProperty("worldHalfWidth").floatValue  = 4.2f; // slots ±3 + glow
+                    fitterSO.FindProperty("worldHalfHeight").floatValue = 2.8f; // slots ±1.5 + glow + UI
+                    fitterSO.FindProperty("padding").floatValue         = 1.12f;
+                    fitterSO.ApplyModifiedProperties();
+                }
+
                 // Required for IPointerClickHandler on world-space GameObjects
                 if (cam.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() == null)
                     cam.gameObject.AddComponent<UnityEngine.EventSystems.Physics2DRaycaster>();

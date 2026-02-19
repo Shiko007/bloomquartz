@@ -58,44 +58,55 @@ namespace Bloomquartz.Editor
             scaler.matchWidthOrHeight  = 0.5f;
             hudCanvas.AddComponent<GraphicRaycaster>();
 
-            // ── HUD ELEMENTS ──────────────────────────────────────
-            // Layout (all anchored to top, fitting inside ~220px safe zone):
-            //  Row 1 (y -65):  Score (left) | Level / Goal (center) | Moves (right)
-            //  Row 2 (y -110): Gem count (center, gold)
-            //  Row 3 (y -168): [+5 Moves 200g] [Bomb 250g] [Shuffle 150g]  ← power-ups
-            //  Board begins below this safe zone.
+            // ── SAFE-AREA PANEL ───────────────────────────────────
+            // SafeAreaFitter adjusts this panel's anchors to the device safe area
+            // at runtime, so all HUD content is pushed below the Dynamic Island / notch.
+            var safePanel = new GameObject("SafeAreaPanel");
+            safePanel.transform.SetParent(hudCanvas.transform, false);
+            var spRt = safePanel.AddComponent<RectTransform>();
+            spRt.anchorMin = Vector2.zero; spRt.anchorMax = Vector2.one;
+            spRt.offsetMin = Vector2.zero; spRt.offsetMax = Vector2.zero;
+            safePanel.AddComponent<Bloomquartz.UI.SafeAreaFitter>();
+
+            // ── HUD ELEMENTS (all inside SafeAreaPanel) ───────────
+            // Layout anchored to SafeAreaPanel top:
+            //  Row 1 (y -55):  Score (left) | Moves (right, inset 155px)
+            //  Row 2 (y -105): Goal (center)
+            //  Row 3 (y -152): GemCount (center-left) | < Menu (top-right)
+            //  Row 4 (y -205): [+5 Moves 200g]  [Bomb 250g]  [Shuffle 150g]
+            //  Combo label: mid-screen
 
             // Score — top left
-            var scoreGO = CreateAnchoredText(hudCanvas, "ScoreText", "Score\n<b>0</b>",
+            var scoreGO = CreateAnchoredText(safePanel, "ScoreText", "Score\n<b>0</b>",
                 new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(130, -65), new Vector2(220, 75), 22);
+                new Vector2(120, -55), new Vector2(200, 68), 20);
 
-            // Moves — top right
-            var movesGO = CreateAnchoredText(hudCanvas, "MovesText", "Moves\n<b>30</b>",
+            // Moves — top right (inset 155 px so it never clips on narrow phones)
+            var movesGO = CreateAnchoredText(safePanel, "MovesText", "Moves\n<b>30</b>",
                 new Vector2(1, 1), new Vector2(1, 1),
-                new Vector2(-130, -65), new Vector2(220, 75), 22);
+                new Vector2(-155, -55), new Vector2(200, 68), 20);
             movesGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Right;
 
             // Goal — top center
-            var goalGO = CreateAnchoredText(hudCanvas, "GoalText", "Goal: 2,000",
+            var goalGO = CreateAnchoredText(safePanel, "GoalText", "Goal: 2,000",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -50), new Vector2(360, 52), 19);
+                new Vector2(0, -105), new Vector2(320, 46), 17);
 
-            // Gem count — below goal (gold, so player knows budget for power-ups)
-            var gemCountGO = CreateAnchoredText(hudCanvas, "GemCountText", "Gems: 0",
+            // Gem count — row 3, slightly left of centre to leave room for Menu button
+            var gemCountGO = CreateAnchoredText(safePanel, "GemCountText", "Gems: 0",
                 new Vector2(0.5f, 1), new Vector2(0.5f, 1),
-                new Vector2(0, -98), new Vector2(280, 40), 16);
+                new Vector2(-80, -152), new Vector2(260, 36), 14);
             gemCountGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.88f, 0.3f);
 
-            // Combo — mid screen (above board centre)
-            var comboGO = CreateAnchoredText(hudCanvas, "ComboText", "x2 COMBO!",
+            // Combo — mid screen
+            var comboGO = CreateAnchoredText(safePanel, "ComboText", "x2 COMBO!",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0, 160), new Vector2(440, 70), 38);
             comboGO.GetComponent<TextMeshProUGUI>().color = new Color(1f, 0.9f, 0.2f);
             comboGO.SetActive(false);
 
             // HUDController
-            var hudCtrl = hudCanvas.AddComponent<Bloomquartz.UI.HUDController>();
+            var hudCtrl = safePanel.AddComponent<Bloomquartz.UI.HUDController>();
             var hudSO   = new SerializedObject(hudCtrl);
             hudSO.FindProperty("scoreText").objectReferenceValue = scoreGO.GetComponent<TextMeshProUGUI>();
             hudSO.FindProperty("movesText").objectReferenceValue = movesGO.GetComponent<TextMeshProUGUI>();
@@ -189,32 +200,33 @@ namespace Bloomquartz.Editor
             WireButton(losePanel, "RetryButton2", wlCtrl, "OnRetryPressed");
             WireButton(losePanel, "MenuButton",   wlCtrl, "OnMenuPressed");
 
-            // ── POWER-UP PANEL (row 3 of top HUD — above the board) ─────
-            // PowerupHandler lives on the HUD canvas so it is always present;
-            // it delegates to Board.Instance at call time, avoiding the issue
-            // where boardGO may be null when this Editor script runs.
-            var powerupHandler = hudCanvas.AddComponent<Bloomquartz.UI.PowerupHandler>();
+            // ── POWER-UP PANEL (row 4 of top HUD) ────────────────
+            // PowerupHandler lives on the SafeAreaPanel so it is always present.
+            // Menu button is the leftmost item in this row to avoid overlapping other elements.
+            var powerupHandler = safePanel.AddComponent<Bloomquartz.UI.PowerupHandler>();
 
             var powerupPanel = new GameObject("PowerupPanel");
-            powerupPanel.transform.SetParent(hudCanvas.transform, false);
+            powerupPanel.transform.SetParent(safePanel.transform, false);
             var prt = powerupPanel.AddComponent<RectTransform>();
-            prt.anchorMin        = new Vector2(0.5f, 1f);  // anchor top-center
+            prt.anchorMin        = new Vector2(0.5f, 1f);
             prt.anchorMax        = new Vector2(0.5f, 1f);
-            prt.anchoredPosition = new Vector2(0, -168);   // row 3 of HUD
-            prt.sizeDelta        = new Vector2(1040, 62);
+            prt.anchoredPosition = new Vector2(0f, -205f);
+            prt.sizeDelta        = new Vector2(1040f, 56f);
 
-            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves  200g",  new Vector2(-340, 0), new Vector2(320, 58), new Color(0.15f, 0.45f, 0.15f));
-            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb  250g",       new Vector2(0,    0), new Vector2(320, 58), new Color(0.50f, 0.15f, 0.10f));
-            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle  150g",    new Vector2(340,  0), new Vector2(320, 58), new Color(0.15f, 0.25f, 0.50f));
+            // 3 power-up buttons equally spaced: each 280px, 2 gaps of 100px.
+            // Centers from panel centre: -380, 0, +380.
+            var movesBtn   = CreateButton(powerupPanel, "BuyMovesBtn",  "+5 Moves  200g",  new Vector2(-380f, 0f), new Vector2(280f, 52f), new Color(0.15f, 0.45f, 0.15f));
+            var bombBtn    = CreateButton(powerupPanel, "BombBtn",      "Bomb  250g",      new Vector2(   0f, 0f), new Vector2(280f, 52f), new Color(0.50f, 0.15f, 0.10f));
+            var shuffleBtn = CreateButton(powerupPanel, "ShuffleBtn",   "Shuffle  150g",   new Vector2( 380f, 0f), new Vector2(280f, 52f), new Color(0.15f, 0.25f, 0.50f));
 
             WireButtonToComponent(movesBtn,   powerupHandler, "BuyMoves");
             WireButtonToComponent(bombBtn,    powerupHandler, "BombPowerUp");
             WireButtonToComponent(shuffleBtn, powerupHandler, "ShufflePowerUp");
 
-            // Menu button — top-left corner, below the score text
-            var menuBtn = CreateButton(hudCanvas, "MenuButton", "< Menu",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(60, -195), new Vector2(110, 46), new Color(0.15f, 0.15f, 0.25f));
+            // < Menu button — row 3, right side (next to GemCount)
+            var menuBtn = CreateButton(safePanel, "MenuButton", "< Menu",
+                new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(-70f, -152f), new Vector2(120f, 40f), new Color(0.15f, 0.15f, 0.35f));
             WireButtonToComponent(menuBtn, powerupHandler, "GoToMenu");
 
             // ── AUDIO MANAGER (fallback if not carried from MainMenu) ────
