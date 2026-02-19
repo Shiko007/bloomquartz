@@ -278,16 +278,22 @@ namespace Bloomquartz.Puzzle
             float boardH = height * tileSize;
             float aspect = (float)Screen.width / Screen.height;
 
-            // Minimum ortho size to fully show the board, then add 5% breathing room
+            // HUD occupies ~20% of screen height from the top (152pt / 844pt reference ≈ 18%).
+            const float hudFrac = 0.20f;
+
+            // Two constraints on the ortho size:
+            //   1. board width fully visible:       ortho >= boardW/2 / aspect
+            //   2. board height fits BELOW the HUD: ortho >= boardH / (2*(1-hudFrac))
+            //      (without constraint 2, the board bottom falls outside the camera on
+            //       landscape tablets where the width constraint is small)
             float sizeForWidth  = (boardW / 2f) / aspect;
-            float sizeForHeight =  boardH / 2f;
+            float sizeForHeight = boardH / (2f * (1f - hudFrac));   // ← key fix
             cam.orthographicSize = Mathf.Max(sizeForWidth, sizeForHeight) * 1.05f;
 
-            // Place the board so its TOP sits just below the HUD strip.
-            // The HUD (safe area + 4 UI rows) occupies roughly the top 24% of screen height.
-            // board_top  = cam_top - 24% of visible_height
-            // board_center = board_top - boardH/2
-            float boardY = cam.orthographicSize * (1f - 2f * 0.24f) - boardH / 2f;
+            // Place board so its TOP edge sits just below the HUD strip.
+            // board_top   = camTop × (1 − hudFrac×2)
+            // board_center = board_top − boardH/2
+            float boardY = cam.orthographicSize * (1f - 2f * hudFrac) - boardH / 2f;
             transform.position = new Vector3(0f, boardY, 0f);
         }
 

@@ -37,7 +37,8 @@ namespace Bloomquartz.Editor
                     var fitter   = cam.gameObject.AddComponent<Bloomquartz.Juice.CameraFitter>();
                     var fitterSO = new SerializedObject(fitter);
                     fitterSO.FindProperty("worldHalfWidth").floatValue  = 2.5f;
-                    fitterSO.FindProperty("worldHalfHeight").floatValue = 3.8f;
+                    // Top slot shifted to y=+3.2 → top-of-glow at +4.2; use 4.5 to give headroom
+                    fitterSO.FindProperty("worldHalfHeight").floatValue = 4.5f;
                     fitterSO.FindProperty("padding").floatValue         = 1.1f;
                     fitterSO.ApplyModifiedProperties();
                 }
@@ -79,11 +80,14 @@ namespace Bloomquartz.Editor
             slotsParent.transform.SetParent(gardenRoot.transform);
 
             // 3 rows × 2 columns — portrait layout that fits narrow iPhone screens.
-            // Columns at x = ±1.5,  rows at y = +2.8, 0, -2.8.
+            // Columns at x = ±1.5.
+            // Rows shifted +0.4 units upward vs symmetric (±2.8) so the bottom row
+            // clears the PUZZLE/MENU nav buttons on iPad portrait.
+            // Top glow: +3.2+1.0 = +4.2 → covered by worldHalfHeight=4.5 above.
             Vector3[] positions = {
-                new Vector3(-1.5f,  2.8f, 0), new Vector3(1.5f,  2.8f, 0),
-                new Vector3(-1.5f,  0.0f, 0), new Vector3(1.5f,  0.0f, 0),
-                new Vector3(-1.5f, -2.8f, 0), new Vector3(1.5f, -2.8f, 0)
+                new Vector3(-1.5f,  3.2f, 0), new Vector3(1.5f,  3.2f, 0),
+                new Vector3(-1.5f,  0.4f, 0), new Vector3(1.5f,  0.4f, 0),
+                new Vector3(-1.5f, -2.4f, 0), new Vector3(1.5f, -2.4f, 0)
             };
 
             var slotTransforms = new Transform[6];
